@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph.xml"
+    app:startDestination="@id/mainFragment">
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.example.weatherforecast.ui.main.MainFragment"
+        android:label="@string/main_fragment_navbar"
+        tools:layout="@layout/fragment_main">
+        <action
+            android:id="@+id/action_mainFragment_to_itemFragment"
+            app:destination="@id/itemFragment"
+            app:popUpTo="@id/itemFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_cityFragment"
+            app:destination="@id/cityFragment"
+            app:popUpTo="@id/cityFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/itemFragment"
+        android:name="com.example.weatherforecast.ui.ItemFragment"
+        android:label="@string/week_forecast_nav_bar"
+        tools:layout="@layout/fragment_item_list" />
+    <fragment
+        android:id="@+id/cityFragment"
+        android:name="com.example.weatherforecast.ui.CityFragment"
+        android:label="@string/city_search_nav_bar"
+        tools:layout="@layout/fragment_city_list">
+        <action
+            android:id="@+id/action_cityFragment_to_mainFragment"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/mainFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+</navigation>

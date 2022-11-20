@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.main.MainFragment">
+
+    <RadioGroup
+        android:id="@+id/radioGroup"
+        android:checkedButton="@+id/rb_current_city"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent">
+    <RadioButton
+        android:id="@+id/rb_current_city"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="@string/current_city_rb"/>
+    <RadioButton
+        android:id="@+id/rb_select_city"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="@string/other_city_rb"/>
+    </RadioGroup>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/city_input_hint"
+        app:errorEnabled="true"
+        app:layout_constraintTop_toBottomOf="@id/radioGroup">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/textFieldInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        style="?attr/materialButtonOutlinedStyle"
+        android:id="@+id/selectCityButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/select_city_button"
+        app:layout_constraintTop_toBottomOf="@id/textField"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/selectedCityTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/selectCityButton"
+        tools:text="Rome" />
+
+    <Button
+        style="?attr/materialButtonOutlinedStyle"
+        android:id="@+id/showForecastButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/show_weather_button"
+        app:layout_constraintTop_toBottomOf="@id/selectedCityTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+    <TextView
+        android:id="@+id/todayForecastTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text=""
+        app:layout_constraintTop_toBottomOf="@id/showForecastButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/weekForecastButton" />
+
+    <ImageView
+        android:id="@+id/status_image"
+        android:layout_width="117dp"
+        android:layout_height="93dp"
+        android:src="@drawable/loading_animation"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/weekForecastButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/showForecastButton" />
+    <Button
+        style="?attr/materialButtonOutlinedStyle"
+        android:id="@+id/weekForecastButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/week_forecast_button"
+        android:enabled="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
