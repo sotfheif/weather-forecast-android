@@ -38,14 +38,7 @@ class CityFragment : Fragment() {
         }
             binding.recyclerView.layoutManager = LinearLayoutManager(this.context)
             binding.recyclerView.adapter = myCityListAdapter
-        /*
-        viewModel.citySearchResult.let {
-            if (it.isNotEmpty() && it[0].name == viewModel.cityNotFound)
-            {myCityListAdapter.submitList(listOf(City(name=getString(/*R.string.city_not_found_dialog_title*/))))}
-            else
-            {myCityListAdapter.submitList(it)}
-        }
-        */
+
         viewModel.citySearchResult.let {
             if (it.isNotEmpty()) {
                 myCityListAdapter.submitList(it)
@@ -54,16 +47,7 @@ class CityFragment : Fragment() {
                 showUnexpectedMistake()
             }
         }
-        /*orig
-        viewModel.citySearchResult.observe(this.viewLifecycleOwner) { cities ->
-            cities.let {
-                if (it.isNotEmpty() && it[0].name == viewModel.cityNotFound)
-                    {myCityListAdapter.submitList(listOf(City(name=getString(R.string.city_not_found_text))))}
-                else
-                {myCityListAdapter.submitList(it)}
-            }
-        }
-         */
+
         viewModel.statusImageCityFragment.observe(this.viewLifecycleOwner) {
             if (it) {
                 binding.statusImage.visibility = View.VISIBLE
