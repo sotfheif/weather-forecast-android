@@ -17,7 +17,7 @@ import com.google.android.material.snackbar.Snackbar
 
 
 class CityFragment : Fragment() {
-
+    private val testv = "sdf"
     private var _binding: FragmentCityListBinding? = null
     private val binding get() = _binding!!
     private val viewModel: MainViewModel by activityViewModels()
