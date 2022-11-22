@@ -21,7 +21,7 @@
     </fragment>
     <fragment
         android:id="@+id/itemFragment"
-        android:name="com.example.weatherforecast.ui.ItemFragment"
+        android:name="com.example.weatherforecast.ui.WeekForecastFragment"
         android:label="@string/week_forecast_nav_bar"
         tools:layout="@layout/fragment_item_list" />
     <fragment

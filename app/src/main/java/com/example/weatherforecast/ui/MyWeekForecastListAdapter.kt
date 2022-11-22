@@ -11,8 +11,8 @@ import com.example.weatherforecast.databinding.FragmentItemBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
-class MyItemListAdapter :
-    ListAdapter<DayForecast, MyItemListAdapter.MyItemViewHolder>(DiffCallback) {
+class MyWeekForecastListAdapter :
+    ListAdapter<DayForecast, MyWeekForecastListAdapter.MyItemViewHolder>(DiffCallback) {
 
     class MyItemViewHolder(private var binding: FragmentItemBinding) :
         RecyclerView.ViewHolder(binding.root) {

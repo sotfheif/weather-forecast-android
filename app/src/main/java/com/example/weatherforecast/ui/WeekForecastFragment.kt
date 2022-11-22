@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.weatherforecast.databinding.FragmentItemListBinding
 import com.example.weatherforecast.ui.main.MainViewModel
 
-class ItemFragment : Fragment() {
+class WeekForecastFragment : Fragment() {
     private var _binding: FragmentItemListBinding? = null
     private val binding get() = _binding!!
     private val viewModel: MainViewModel by activityViewModels()
@@ -25,12 +25,12 @@ class ItemFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val myItemListAdapter = MyItemListAdapter()
+        val myWeekForecastListAdapter = MyWeekForecastListAdapter()
         binding.recyclerView.layoutManager = LinearLayoutManager(this.context)
-        binding.recyclerView.adapter = myItemListAdapter
+        binding.recyclerView.adapter = myWeekForecastListAdapter
         viewModel.weekForecast.observe(this.viewLifecycleOwner) { weekForecast ->
             weekForecast.let {
-                myItemListAdapter.submitList(it)
+                myWeekForecastListAdapter.submitList(it)
             }
         }
     }
