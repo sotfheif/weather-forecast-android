@@ -7,13 +7,13 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -28,7 +28,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
-import java.util.Calendar
+import java.util.*
 import kotlin.math.round
 import kotlin.math.roundToInt
 
@@ -41,7 +41,7 @@ class MainFragment : Fragment() {
     */
     private val viewModel: MainViewModel by activityViewModels()
     private lateinit var binding: FragmentMainBinding
-    private lateinit var weatherCodeMap: Map<Int,String>
+    private lateinit var weatherCodeMap: Map<Int, String>
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,9 +52,11 @@ class MainFragment : Fragment() {
                 ActivityResultContracts.RequestPermission()
             ) { isGranted: Boolean ->
                 if (isGranted) {
-                    viewLifecycleOwner.lifecycleScope.launch { detectLoc(viewModel.requestPermissionLauncher)
-                    }} else {
-                    binding.statusImage.visibility=View.GONE
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        detectLoc(viewModel.requestPermissionLauncher)
+                    }
+                } else {
+                    binding.statusImage.visibility = View.GONE
                     showGeoPermissionRequiredDialog()
                 }
             }
@@ -73,27 +75,30 @@ class MainFragment : Fragment() {
 
         binding.showForecastButton.setOnClickListener {
             if (viewModel.locationSettingOption.value ==
-                MainViewModel.LocSetOptions.CURRENT) {
-                viewLifecycleOwner.lifecycleScope.launch{
+                MainViewModel.LocSetOptions.CURRENT
+            ) {
+                viewLifecycleOwner.lifecycleScope.launch {
                     viewModel.setStatusMainFragment(true)
                     detectLoc(viewModel.requestPermissionLauncher)
                 }
-            }
-            else if (viewModel.locationSettingOption.value ==
-                MainViewModel.LocSetOptions.SELECT) {
-                if (viewModel.selectedCity.value?.name == null)
-                {
-                    Snackbar.make(binding.showForecastButton,
+            } else if (viewModel.locationSettingOption.value ==
+                MainViewModel.LocSetOptions.SELECT
+            ) {
+                if (viewModel.selectedCity.value?.name == null) {
+                    Snackbar.make(
+                        binding.showForecastButton,
                         getString(R.string.select_city_snackbar),
-                        Snackbar.LENGTH_SHORT)
+                        Snackbar.LENGTH_SHORT
+                    )
                         .show()
-                }
-                else {
+                } else {
                     viewModel.selectedCity.value.let {
-                        it?.latitude?.let { it1 -> it.longitude?.let { it2 ->
-                            viewModel.setStatusMainFragment(true)
-                            viewModel.getForecastByCoords(it1, it2)
-                        } }
+                        it?.latitude?.let { it1 ->
+                            it.longitude?.let { it2 ->
+                                viewModel.setStatusMainFragment(true)
+                                viewModel.getForecastByCoords(it1, it2)
+                            }
+                        }
                     }
                 }
             }
@@ -107,20 +112,20 @@ class MainFragment : Fragment() {
             viewModel.setLocOption(MainViewModel.LocSetOptions.SELECT)
             viewModel.resetWeekForecast()
         }
-        viewModel.locationSettingOption.observe(this.viewLifecycleOwner) {option ->
-            when (option){
+        viewModel.locationSettingOption.observe(this.viewLifecycleOwner) { option ->
+            when (option) {
                 MainViewModel.LocSetOptions.CURRENT -> {
-                    binding.rbCurrentCity.isChecked=true
-                    binding.textField.isEnabled=false
-                    binding.selectCityButton.isEnabled=false
+                    binding.rbCurrentCity.isChecked = true
+                    binding.textField.isEnabled = false
+                    binding.selectCityButton.isEnabled = false
                     viewModel.resetSelectedCity()
                     viewModel.resetWeekForecast()
                 }
                 MainViewModel.LocSetOptions.SELECT -> {
-                    binding.rbSelectCity.isChecked=true
-                    binding.textField.isEnabled=true
-                    binding.selectCityButton.isEnabled=true
-                    binding.selectedCityTextView.text=""
+                    binding.rbSelectCity.isChecked = true
+                    binding.textField.isEnabled = true
+                    binding.selectCityButton.isEnabled = true
+                    binding.selectedCityTextView.text = ""
                     viewModel.resetWeekForecast()
                 }
                 else -> {}
@@ -129,11 +134,12 @@ class MainFragment : Fragment() {
         }
 
         binding.selectCityButton.setOnClickListener {
-            viewLifecycleOwner.lifecycleScope.launch{
+            viewLifecycleOwner.lifecycleScope.launch {
                 var foundAnyCities = false
                 viewModel.resetForecastResult()
                 val job = viewLifecycleOwner.lifecycleScope.launch {
-                    foundAnyCities = viewModel.getCitiesByName(binding.textFieldInput.text.toString())
+                    foundAnyCities =
+                        viewModel.getCitiesByName(binding.textFieldInput.text.toString())
                 }
                 job.join()
                 if (foundAnyCities) {
@@ -142,7 +148,8 @@ class MainFragment : Fragment() {
                 } else {
                     showCityNotFoundDialog()
                 }
-            } }
+            }
+        }
 
         binding.weekForecastButton.setOnClickListener {
             val action = MainFragmentDirections.actionMainFragmentToItemFragment()
@@ -150,23 +157,27 @@ class MainFragment : Fragment() {
         }
 
         viewModel.selectedCity.observe(this.viewLifecycleOwner) { city ->
-            if (city.name==null) {
-                if (viewModel.locationSettingOption.value==MainViewModel.LocSetOptions.CURRENT) {
-                binding.selectedCityTextView.text=getString(
-                    R.string.selected_city_text_current_location)}
-                else { binding.selectedCityTextView.text=""}
-            }
-            else city.let {
+            if (city.name == null) {
+                if (viewModel.locationSettingOption.value == MainViewModel.LocSetOptions.CURRENT) {
+                    binding.selectedCityTextView.text = getString(
+                        R.string.selected_city_text_current_location
+                    )
+                } else {
+                    binding.selectedCityTextView.text = ""
+                }
+            } else city.let {
                 binding.selectedCityTextView.text = viewModel.prepCityForUi(city)
             }
         }
 
 
-        viewModel.getForecastResult.observe(this.viewLifecycleOwner)  {
+        viewModel.getForecastResult.observe(this.viewLifecycleOwner) {
             val weekForecast = handleForecastResponse(it)
-            if (weekForecast[0].latitude!=null)
-            {viewModel.setWeekForecast(weekForecast)}
-            else {viewModel.resetWeekForecast()}
+            if (weekForecast[0].latitude != null) {
+                viewModel.setWeekForecast(weekForecast)
+            } else {
+                viewModel.resetWeekForecast()
+            }
         }
         weatherCodeMap = mapOf(
             0 to getString(R.string.wc0),
@@ -200,34 +211,35 @@ class MainFragment : Fragment() {
         )
         viewModel.statusImageMainFragment.observe(this.viewLifecycleOwner)
         {
-            if (it) {binding.statusImage.visibility=View.VISIBLE}
-            else {binding.statusImage.visibility = View.GONE}
+            if (it) {
+                binding.statusImage.visibility = View.VISIBLE
+            } else {
+                binding.statusImage.visibility = View.GONE
+            }
         }
 
         viewModel.weekForecast.observe(this.viewLifecycleOwner) {
-            if (viewModel.weekForecast.value?.isEmpty() != false)
-            {binding.todayForecastTextView.text = "" }
-            else {
-            val todayForecast = viewModel.weekForecast.value?.get(0)
-            binding.todayForecastTextView.text = getString(R.string.day_forecast,
-                todayForecast?.temperature2mMin ?: "",
-                todayForecast?.temperature2mMax ?: "",
-                todayForecast?.weather ?: "",
-                todayForecast?.pressure ?: "",
-                todayForecast?.windspeed10mMax ?: "",
-                todayForecast?.winddirection10mDominant?: "",
-                todayForecast?.relativeHumidity?: ""
-            )
+            if (viewModel.weekForecast.value?.isEmpty() != false) {
+                binding.todayForecastTextView.text = ""
+            } else {
+                val todayForecast = viewModel.weekForecast.value?.get(0)
+                binding.todayForecastTextView.text = getString(
+                    R.string.day_forecast,
+                    todayForecast?.temperature2mMin ?: "",
+                    todayForecast?.temperature2mMax ?: "",
+                    todayForecast?.weather ?: "",
+                    todayForecast?.pressure ?: "",
+                    todayForecast?.windspeed10mMax ?: "",
+                    todayForecast?.winddirection10mDominant ?: "",
+                    todayForecast?.relativeHumidity ?: ""
+                )
             }
             binding.weekForecastButton.isEnabled =
                 (viewModel.weekForecast.value?.isNotEmpty() == true)
         }
 
 
-
-
     }
-
 
 
     private fun showNoGeoDialog() {
@@ -235,7 +247,7 @@ class MainFragment : Fragment() {
             .setTitle(getString(R.string.no_geo_dialog_title))
             .setMessage(getString(R.string.no_geo_dialog_text))
             .setCancelable(true)
-            .setNegativeButton(R.string.no_geo_dialog_button){_, _ ->}
+            .setNegativeButton(R.string.no_geo_dialog_button) { _, _ -> }
             .show()
     }
 
@@ -244,7 +256,7 @@ class MainFragment : Fragment() {
             .setTitle(getString(R.string.failed_to_detect_geo_dialog_title))
             .setMessage(getString(R.string.failed_to_detect_geo_dialog_text))
             .setCancelable(true)
-            .setNegativeButton(R.string.failed_to_detect_geo_dialog_button){_, _ ->}
+            .setNegativeButton(R.string.failed_to_detect_geo_dialog_button) { _, _ -> }
             .show()
     }
 
@@ -253,7 +265,7 @@ class MainFragment : Fragment() {
             .setTitle(getString(R.string.no_geo_permission_dialog_title))
             .setMessage(getString(R.string.no_geo_permission_dialog_text))
             .setCancelable(true)
-            .setNegativeButton(R.string.no_geo_permission_dialog_button){_, _ ->}
+            .setNegativeButton(R.string.no_geo_permission_dialog_button) { _, _ -> }
             .show()
     }
 
@@ -262,25 +274,34 @@ class MainFragment : Fragment() {
             .setTitle(getString(R.string.city_not_found_dialog_title))
             .setMessage(getString(R.string.city_not_found_dialog_text))
             .setCancelable(true)
-            .setNegativeButton(R.string.no_geo_dialog_button){_, _ ->}
+            .setNegativeButton(R.string.no_geo_dialog_button) { _, _ -> }
             .show()
     }
 
-    private fun showUnexpectedMistake(){
+    private fun showUnexpectedMistake() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.unexpected_mistake_text))
             .setMessage(getString(R.string.unexpected_mistake_text))
             .setCancelable(true)
-            .setNegativeButton(R.string.no_geo_dialog_button){_, _ ->}
+            .setNegativeButton(R.string.no_geo_dialog_button) { _, _ -> }
             .show()
     }
 
-    private suspend fun detectLoc(activityResultLauncher: ActivityResultLauncher<String>){
-        when (PackageManager.PERMISSION_GRANTED) {
+    private fun showGeoPermissionRationaleDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.no_geo_permission_dialog_title))
+            .setMessage(getString(R.string.location_permission_rationale))
+            .setCancelable(true)
+            .setNegativeButton(R.string.no_geo_permission_dialog_button) { _, _ -> }
+            .show()
+    }
+
+    private suspend fun detectLoc(activityResultLauncher: ActivityResultLauncher<String>) {
+        when {
             ContextCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION
-            ) -> {
+            ) == PackageManager.PERMISSION_GRANTED -> {
                 var location: Location?
                 val locationManager: LocationManager = context
                     ?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -289,7 +310,8 @@ class MainFragment : Fragment() {
                         LocationManager.GPS_PROVIDER
                     )
                 val lastKnownLocationByGpsTime = lastKnownLocationByGps?.time ?: 0
-                val lastKnownLocationByNetwork = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                val lastKnownLocationByNetwork =
+                    locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
                 val lastKnownLocationByNetworkTime = lastKnownLocationByNetwork?.time ?: 0
                 var latestKnownLocTime: Long = 0
                 var latestKnownLoc: Location? = null
@@ -298,13 +320,15 @@ class MainFragment : Fragment() {
                     latestKnownLocTime = lastKnownLocationByGpsTime
                 }
                 if (lastKnownLocationByNetwork != null &&
-                    lastKnownLocationByNetworkTime > lastKnownLocationByGpsTime) {
+                    lastKnownLocationByNetworkTime > lastKnownLocationByGpsTime
+                ) {
                     latestKnownLoc = lastKnownLocationByNetwork
                     latestKnownLocTime = lastKnownLocationByNetworkTime
                 }
 
                 if (latestKnownLocTime
-                    >(Calendar.getInstance().timeInMillis - Constants.maxLocAge)) {
+                    > (Calendar.getInstance().timeInMillis - Constants.maxLocAge)
+                ) {
                     setLocationGetForecast(latestKnownLoc)
                     return
                 }
@@ -327,7 +351,8 @@ class MainFragment : Fragment() {
                         }
                     }
                 if (locationManager
-                        .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                        .isProviderEnabled(LocationManager.GPS_PROVIDER)
+                ) {
                     locationManager.requestLocationUpdates(
                         LocationManager.GPS_PROVIDER,
                         500,
@@ -353,47 +378,70 @@ class MainFragment : Fragment() {
                     showNoGeoDialog()
                 }
             }
+            shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
+// In an educational UI, explain to the user why your app requires this
+// permission for a specific feature to behave as expected, and what
+// features are disabled if it's declined. In this UI, include a
+// "cancel" or "no thanks" button that lets the user continue
+// using your app without granting the permission.
+                showGeoPermissionRationaleDialog()
+            }
             else -> {
                 activityResultLauncher.launch(
-                    Manifest.permission.ACCESS_COARSE_LOCATION)
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
             }
         }
     }
 
     fun setLocationGetForecast(location: Location?) {
         val locationSet = viewModel.setLocation(location)
-        if (!locationSet)
-        {
+        if (!locationSet) {
             showFailedToDetectGeoDialog()
-        }
-        else {
+        } else {
             viewModel.currentLocation.let {
-                viewModel.getForecastByCoords(it.latitude, it.longitude) }
+                viewModel.getForecastByCoords(it.latitude, it.longitude)
+            }
         }
     }
 
     private fun handleForecastResponse(forecastResponse: ForecastResponse):
             List<DayForecast> {
-        if (forecastResponse.latitude ==null) {return mutableListOf(DayForecast())}
+        if (forecastResponse.latitude == null) {
+            return mutableListOf(DayForecast())
+        }
         val weekForecast: MutableList<DayForecast> = mutableListOf()
-        repeat(7){
-            val dayPressure = round(forecastResponse.hourly.pressure_msl
-                .subList(it*24, (it+1)*24).average()*10)/10
+        repeat(7) {
+            val dayPressure = round(
+                forecastResponse.hourly.pressure_msl
+                    .subList(it * 24, (it + 1) * 24).average() * 10
+            ) / 10
             val dayRelativeHumidity = forecastResponse.hourly.relativehumidity_2m
-                .subList(it*24, (it+1)*24).average().roundToInt()
+                .subList(it * 24, (it + 1) * 24).average().roundToInt()
             val humanWeather: String =
                 weatherCodeMap[forecastResponse.daily.weathercode[it]] ?: ""
-            weekForecast.add(DayForecast(latitude = forecastResponse.latitude,
-                longitude = forecastResponse.longitude,
-                pressure = dayPressure.toString()+getString(R.string.pressure_unit),
-                relativeHumidity = dayRelativeHumidity.toString()+getString(R.string.relative_humidity_unit),
-                weather = humanWeather,
-                temperature2mMin = forecastResponse.daily.temperature_2m_min[it].toString() + getString(R.string.temperature_unit),
-                temperature2mMax = forecastResponse.daily.temperature_2m_max[it].toString() + getString(R.string.temperature_unit),
-                windspeed10mMax = forecastResponse.daily.windspeed_10m_max[it].toString() + getString(R.string.wind_speed_unit),
-                winddirection10mDominant = forecastResponse.daily.winddirection_10m_dominant[it].toString() + getString(R.string.wind_direction_unit),
-                timeStamp = Calendar.getInstance().timeInMillis
-                ))
+            weekForecast.add(
+                DayForecast(
+                    latitude = forecastResponse.latitude,
+                    longitude = forecastResponse.longitude,
+                    pressure = dayPressure.toString() + getString(R.string.pressure_unit),
+                    relativeHumidity = dayRelativeHumidity.toString() + getString(R.string.relative_humidity_unit),
+                    weather = humanWeather,
+                    temperature2mMin = forecastResponse.daily.temperature_2m_min[it].toString() + getString(
+                        R.string.temperature_unit
+                    ),
+                    temperature2mMax = forecastResponse.daily.temperature_2m_max[it].toString() + getString(
+                        R.string.temperature_unit
+                    ),
+                    windspeed10mMax = forecastResponse.daily.windspeed_10m_max[it].toString() + getString(
+                        R.string.wind_speed_unit
+                    ),
+                    winddirection10mDominant = forecastResponse.daily.winddirection_10m_dominant[it].toString() + getString(
+                        R.string.wind_direction_unit
+                    ),
+                    timeStamp = Calendar.getInstance().timeInMillis
+                )
+            )
         }
         return weekForecast
     }
