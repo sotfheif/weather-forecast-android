@@ -9,7 +9,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weatherforecast.Constants
-import com.example.weatherforecast.R
 import com.example.weatherforecast.data.DayForecast
 import com.example.weatherforecast.network.*
 import kotlinx.coroutines.launch
@@ -80,13 +79,13 @@ class MainViewModel : ViewModel() {
         var listResult = CityResponse()
         val getCitiesJob = viewModelScope.launch {
             _citySearchResult = listOf()
-            setStatusCityFragment(true)
+            setSpinnerVisibilityCityFragment(true)
             try {
                 listResult = OpenMeteoApi.retrofitCityService.getCityResponse(name = query)
             } catch (d: Exception) {
                 Log.d("getCitiesByName", d.toString())
             } finally {
-                setStatusCityFragment(false)
+                setSpinnerVisibilityCityFragment(false)
             }
         }
         getCitiesJob.join()
@@ -121,8 +120,9 @@ class MainViewModel : ViewModel() {
 
 
             } catch (_: Exception) {
+            } finally {
+                setSpinnerVisibilityMainFragment(false)
             }
-            setStatusMainFragment(false)
         }
     }
 
@@ -153,11 +153,11 @@ class MainViewModel : ViewModel() {
         _getForecastResult.value = ForecastResponse()
     }
 
-    fun setStatusMainFragment(b: Boolean) {
+    fun setSpinnerVisibilityMainFragment(b: Boolean) {
         _statusImageMainFragment.value = b
     }
 
-    private fun setStatusCityFragment(b: Boolean) {
+    private fun setSpinnerVisibilityCityFragment(b: Boolean) {
         _statusImageCityFragment.value = b
     }
 
