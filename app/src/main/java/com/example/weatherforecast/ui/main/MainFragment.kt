@@ -48,14 +48,14 @@ class MainFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel.requestPermissionLauncher =
+        viewModel.requestLocPermissionLauncher =
             registerForActivityResult(
                 ActivityResultContracts.RequestPermission()
             ) { isGranted: Boolean ->
                 if (isGranted) {
                     viewLifecycleOwner.lifecycleScope.launch {
-                        tryDetectLoc()
-                        //TODO think if should remove this and leave just one tryDetectLoc call
+                        tryGetCurrentLocForecast()  //TODO maybe better move this call somewhere else
+                        //viewModel.setSpinnerVisibilityMainFragment(false)
                     }
                 } else {
                     //binding.statusImage.visibility = View.GONE
@@ -82,7 +82,7 @@ class MainFragment : Fragment() {
             ) {
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewModel.setSpinnerVisibilityMainFragment(true)
-                    checkPermDetectLoc(viewModel.requestPermissionLauncher)
+                    checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
                 }
             } else if (viewModel.locationSettingOption.value ==
                 MainViewModel.LocSetOptions.SELECT
@@ -310,7 +310,8 @@ class MainFragment : Fragment() {
                 requireContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED -> {
-                tryDetectLoc()
+                tryGetCurrentLocForecast()
+                //viewModel.setSpinnerVisibilityMainFragment(false)
             }
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
                 //viewModel.setSpinnerVisibilityMainFragment(false)
@@ -376,17 +377,18 @@ class MainFragment : Fragment() {
     }
 
     @SuppressLint("MissingPermission")
-    fun tryDetectLoc() {
-        var location: Location?
+    fun tryGetCurrentLocForecast() {//TODO add permission exception handling
         val locationManager: LocationManager = context
             ?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val lastKnownLocationByGps =
-            locationManager.getLastKnownLocation(
-                LocationManager.GPS_PROVIDER
-            )
-        val lastKnownLocationByGpsTime = lastKnownLocationByGps?.time ?: 0
+            locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
         val lastKnownLocationByNetwork =
             locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        //getting latest known location (from gps or network)
+        val latestKnownLocResult =
+            chooseLatestLocation(lastKnownLocationByGps, lastKnownLocationByNetwork)
+        /* replaced by chooseLatestLocation call
+        val lastKnownLocationByGpsTime = lastKnownLocationByGps?.time ?: 0
         val lastKnownLocationByNetworkTime = lastKnownLocationByNetwork?.time ?: 0
         var latestKnownLocTime: Long = 0
         var latestKnownLoc: Location? = null
@@ -400,14 +402,18 @@ class MainFragment : Fragment() {
             latestKnownLoc = lastKnownLocationByNetwork
             latestKnownLocTime = lastKnownLocationByNetworkTime
         }
-
-        if (latestKnownLocTime
-            > (Calendar.getInstance().timeInMillis - Constants.maxLocAge)
+        */
+        var location = latestKnownLocResult.second
+        if (latestKnownLocResult.first && location != null &&
+            (location.time) >
+            (Calendar.getInstance().timeInMillis - Constants.maxLocAge)
         ) {
-            setLocationGetForecast(latestKnownLoc)
+            setLocationGetForecast(location)
             return
         }
-
+        getLocationByGps(locationManager)
+        //if no fresh enough location is present, get location by gps
+        /*replaced by getLocationByGps call
         var myjob: Job? = null
         val gpsLocationListener: LocationListener =
             object : LocationListener {
@@ -445,8 +451,80 @@ class MainFragment : Fragment() {
                     ) ?: locationManager.getLastKnownLocation(
                         LocationManager.NETWORK_PROVIDER
                     )
-                location?.let { setLocationGetForecast(it) }
-                //viewModel.setStatusMainFragment(false)
+                if (location !=null) {
+                    setLocationGetForecast(location)
+                    //location?.let { setLocationGetForecast(it) }
+                }
+                else {showFailedToDetectGeoDialog()}
+                //viewModel.setSpinnerVisibilityMainFragment(false)
+            }
+        } else  {
+            viewModel.setSpinnerVisibilityMainFragment(false)
+            showNoGeoDialog()
+        }
+        */
+    }
+
+    fun chooseLatestLocation(
+        latestKnownLocation1: Location?,
+        latestKnownLocation2: Location?
+    ): Pair<Boolean, Location?> {
+        if (latestKnownLocation1 == null && latestKnownLocation2 == null) {
+            return Pair(false, null)
+        }
+        return if ((latestKnownLocation1?.time ?: 0) > (latestKnownLocation2?.time ?: 0)) {
+            Pair(true, latestKnownLocation1)
+        } else Pair(true, latestKnownLocation2)
+    }
+
+    @SuppressLint("MissingPermission")
+    fun getLocationByGps(locationManager: LocationManager) {
+        //TODO add permission exception handling (mb just in parent func)
+        //
+        var myjob: Job? = null
+        val gpsLocationListener: LocationListener =
+            object : LocationListener {
+                override fun onLocationChanged(locationp: Location) {
+                    locationManager.removeUpdates(this)
+                    myjob?.cancel()
+                    setLocationGetForecast(locationp)
+                }
+
+                override fun onProviderDisabled(provider: String) {
+                    super.onProviderDisabled(provider)
+                    locationManager.removeUpdates(this)
+                    myjob?.cancel()
+                    viewModel.setSpinnerVisibilityMainFragment(false)
+                    showNoGeoDialog()
+                }
+            }
+        if (locationManager
+                .isProviderEnabled(LocationManager.GPS_PROVIDER)
+        ) {
+            locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                500,
+                0F,
+                gpsLocationListener
+            )
+            myjob = viewLifecycleOwner.lifecycleScope.launch {
+                repeat(20) {
+                    delay(500)
+                    yield()
+                }
+                val location =
+                    locationManager.getLastKnownLocation(
+                        LocationManager.GPS_PROVIDER
+                    ) ?: locationManager.getLastKnownLocation(
+                        LocationManager.NETWORK_PROVIDER
+                    )
+                if (location != null) {
+                    setLocationGetForecast(location)
+                    //location?.let { setLocationGetForecast(it) }
+                } else {
+                    showFailedToDetectGeoDialog()
+                }
+                //viewModel.setSpinnerVisibilityMainFragment(false)
             }
         } else {
             viewModel.setSpinnerVisibilityMainFragment(false)

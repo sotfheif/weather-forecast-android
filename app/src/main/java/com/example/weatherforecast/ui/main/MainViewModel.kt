@@ -17,7 +17,7 @@ import java.util.*
 
 
 class MainViewModel : ViewModel() {
-    lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
+    lateinit var requestLocPermissionLauncher: ActivityResultLauncher<String>
 
 
     private val _statusImageMainFragment = MutableLiveData<Boolean>()
