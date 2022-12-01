@@ -39,7 +39,7 @@ class MainViewModel : ViewModel() {
     private var _citySearchResult = listOf<City>()
     val citySearchResult: List<City> get() = _citySearchResult
 
-    //val cityNotFound = "Nothing found" //
+    //val cityNotFound = "Nothing found"
 
     private lateinit var _currentLocation: Location
     val currentLocation: Location
