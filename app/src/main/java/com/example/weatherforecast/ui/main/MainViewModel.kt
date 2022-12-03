@@ -64,15 +64,10 @@ class MainViewModel : ViewModel() {
         _locationSettingOption.value = locSetOption
     }
 
-    fun setLocation(location: Location?): Boolean {
-        return if (location != null) {
-            _currentLocation = location
-            latitude = _currentLocation.latitude
-            longitude = _currentLocation.longitude
-            true
-        } else {
-            false
-        }
+    fun setLocation(location: Location) {
+        _currentLocation = location
+        latitude = _currentLocation.latitude
+        longitude = _currentLocation.longitude
     }
 
     suspend fun getCitiesByName(query: String): Boolean {
@@ -96,9 +91,9 @@ class MainViewModel : ViewModel() {
             false
         }
     }
-	
+
     @SuppressLint("SimpleDateFormat")
-    fun getForecastByCoords(cityLatitude: Double, cityLongitude: Double) {
+    suspend fun getForecastByCoords(cityLatitude: Double, cityLongitude: Double) {
         viewModelScope.launch {
             val currentDate: String = SimpleDateFormat("yyyy-MM-dd").format(Date())
             val weekLaterDate: String = SimpleDateFormat("yyyy-MM-dd").format(
@@ -123,7 +118,7 @@ class MainViewModel : ViewModel() {
             } finally {
                 setSpinnerVisibilityMainFragment(false)
             }
-        }
+        }.join()
     }
 
     fun prepCityForUi(city: City): String {
