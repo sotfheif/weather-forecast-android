@@ -112,8 +112,6 @@ class MainViewModel : ViewModel() {
                         daily = daily
                     )
                 _getForecastResult.value = listResult
-
-
             } catch (_: Exception) {
             } finally {
                 setSpinnerVisibilityMainFragment(false)

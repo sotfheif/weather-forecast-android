@@ -83,6 +83,10 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.showForecastButton.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                onShowForecastButtonClicked()
+            }
+            /* replaced with suspend fun onshowforecastbuttonclicked
             if (viewModel.locationSettingOption.value ==
                 MainViewModel.LocSetOptions.CURRENT
             ) {
@@ -113,8 +117,8 @@ class MainFragment : Fragment() {
                     }
                 }
             }
+             */
         }
-
         binding.rbCurrentCity.setOnClickListener {
             viewModel.setLocOption(MainViewModel.LocSetOptions.CURRENT)
             viewModel.resetWeekForecast()
@@ -144,7 +148,7 @@ class MainFragment : Fragment() {
 
         }
 
-        binding.selectCityButton.setOnClickListener {
+        binding.selectCityButton.setOnClickListener {//TODO add an error message if query textbox is empty
             viewLifecycleOwner.lifecycleScope.launch {
                 var foundAnyCities = false
                 viewModel.resetForecastResult()
@@ -550,5 +554,38 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         }
         Log.d("MainFragment", "getLocationByGps penultimate string, error=$error")
         return Pair(location, error)
+    }
+
+    suspend fun onShowForecastButtonClicked() {
+        when (viewModel.locationSettingOption.value) {
+            MainViewModel.LocSetOptions.CURRENT -> {
+                viewModel.setSpinnerVisibilityMainFragment(true)
+                viewLifecycleOwner.lifecycleScope.launch {
+                    checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
+                }.join()
+            }
+            MainViewModel.LocSetOptions.SELECT -> {
+                if (viewModel.selectedCity.value?.name == null) {
+                    Snackbar.make(
+                        binding.showForecastButton,
+                        getString(R.string.select_city_snackbar),
+                        Snackbar.LENGTH_SHORT
+                    )
+                        .show()
+                } else {
+                    viewModel.selectedCity.value.let {
+                        it?.latitude?.let { it1 ->
+                            it.longitude?.let { it2 ->
+                                viewModel.setSpinnerVisibilityMainFragment(true)
+                                viewLifecycleOwner.lifecycleScope.launch {
+                                    viewModel.getForecastByCoords(it1, it2)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else -> {} //shouldn't be necessary after replacing livedata with a normal variable
+        }
     }
 }

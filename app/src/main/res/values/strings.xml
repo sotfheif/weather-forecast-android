@@ -19,7 +19,7 @@
     <string name="no_geo_permission_dialog_text">Please grant the app location permission to detect current location</string>
     <string name="no_geo_permission_dialog_button">Close</string>
     <string name="selected_city_text_current_location">Current location</string>
-    <string name="select_city_snackbar">Please, enter location</string>
+    <string name="select_city_snackbar">Please, specify location</string>
     <string name="city_not_found_dialog_title">Nothing found</string>
     <string name="city_not_found_dialog_text">No results were found matching your search criteria</string>
     <string name="unexpected_mistake_text">Unexpected mistake</string>
