@@ -1,6 +1,14 @@
 package com.example.weatherforecast
 
 object Constants {
-    const val maxLocAge = 1000 * 60 * 5
-    const val weekInMillis = 1000 * 60 * 60 * 24 * 7
+    const val MAX_LOC_AGE = 1000 * 60 * 5
+    const val WEEK_IN_MILLIS = 1000 * 60 * 60 * 24 * 7
+    const val DETECT_GEO_TIMEOUT_CHECK_PERIOD_IN_MILLIS: Long =
+        500 // THIS SHOULD DIVIDE DETECT_GEO_TIMEOUT_IN_MILLIS
+    const val DETECT_GEO_TIMEOUT_CHECK_TIMES = 40
+
+    //const val DETECT_GEO_TIMEOUT_IN_MILLIS: Long = DETECT_GEO_TIMEOUT_CHECK_PERIOD_IN_MILLIS * DETECT_GEO_TIMEOUT_CHECK_TIMES
+    const val REQUEST_LOCATION_UPDATES_MIN_TIME_MS: Long = 500
+    const val REQUEST_LOCATION_UPDATES_MIN_DISTANCE_M: Float = 0F
+
 }

@@ -26,15 +26,13 @@ import com.example.weatherforecast.databinding.FragmentMainBinding
 import com.example.weatherforecast.network.ForecastResponse
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.yield
+import kotlinx.coroutines.*
 import java.util.*
 import kotlin.math.round
 import kotlin.math.roundToInt
 
 class MainFragment : Fragment() {
+    //TODO where necessary prevent calling functions (like after clicking a button), when they are already running
     //TODO check setSpinnerVisibility placement
 
     /*
@@ -46,10 +44,13 @@ class MainFragment : Fragment() {
     private lateinit var binding: FragmentMainBinding
     private lateinit var weatherCodeMap: Map<Int, String>
 
-    enum class getLocationByGpsErrors {
-        NO_ERROR, GPS_IS_OFF, LOC_DETECTION_FAILED, AVAILABLE_LOC_TOO_OLD, LOC_TIME_IS_NULL
+    enum class GetLocationByGpsErrors {
+        NO_ERROR, GPS_IS_OFF, LOC_DETECTION_FAILED
     }
 
+    enum class TimeoutJobCancelReasons {
+        NOT_CANCELLED, ON_LOC_CHANGED, ON_PROVIDER_DISABLED
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -402,26 +403,27 @@ class MainFragment : Fragment() {
 
         if ((latestKnownLoc != null) &&
             ((latestKnownLoc.time) >
-                    (Calendar.getInstance().timeInMillis - Constants.maxLocAge))
+                    (Calendar.getInstance().timeInMillis - Constants.MAX_LOC_AGE))
         ) {
             location = latestKnownLoc
         } else { //if no fresh enough location is present, detect location
             val (newLocation, error) = getLocationByGps(locationManager)
             Log.d("MainFragment", "string after newLocation, error assignment")
-            when (error) {
-                getLocationByGpsErrors.GPS_IS_OFF -> {
+            when (error) {//TODO mb replace returns/spinnervissets, or leave one
+                GetLocationByGpsErrors.GPS_IS_OFF -> {
+                    viewModel.setSpinnerVisibilityMainFragment(false)
                     showNoGeoDialog(); return
                 }
-                getLocationByGpsErrors.LOC_DETECTION_FAILED,
-                getLocationByGpsErrors.AVAILABLE_LOC_TOO_OLD,
-                getLocationByGpsErrors.LOC_TIME_IS_NULL -> {
+                GetLocationByGpsErrors.LOC_DETECTION_FAILED -> {
+                    viewModel.setSpinnerVisibilityMainFragment(false)
                     Log.d("MainFragment", "error=$error")
                     showFailedToDetectGeoDialog(); return
                 }
-                getLocationByGpsErrors.NO_ERROR -> {
+                GetLocationByGpsErrors.NO_ERROR -> {
                     if (newLocation == null) {
                         Log.d("MainFragment", "error=$error, newLocation == null")
-                        showFailedToDetectGeoDialog(); return
+                        viewModel.setSpinnerVisibilityMainFragment(false)
+                        showUnexpectedMistake(); return //TODO change showUnexpectedMistake showFailedToDetectGeo in release
                     }
                 }
             }
@@ -444,86 +446,109 @@ class MainFragment : Fragment() {
     }
 
     @SuppressLint("MissingPermission")
-    suspend fun getLocationByGps(locationManager: LocationManager): Pair<Location?, getLocationByGpsErrors> {
+    suspend fun getLocationByGps(locationManager: LocationManager): Pair<Location?, GetLocationByGpsErrors> {
         //TODO add permission exception handling (mb just in parent func)
-        //
-        var error = getLocationByGpsErrors.NO_ERROR
+        Log.d("MainFragment", "entered getLocationByGps")
+        var error = GetLocationByGpsErrors.NO_ERROR
+        var timeoutJobCancelReason = TimeoutJobCancelReasons.NOT_CANCELLED // mb unnecessary
         var location: Location? = null
-        var myjob: Job? = null
+        var timeOutJob: Job? = null
+
         //TODO mb move gpsLocationListener inside "if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))"
         val gpsLocationListener: LocationListener =
             object : LocationListener {
                 override fun onLocationChanged(newLocation: Location) {
-                    Log.d(
-                        "MainFragment",
-                        "onlocationchanged, cancelling waiter. newLocation=$newLocation, location=$location"
-                    )
-
                     locationManager.removeUpdates(this)
                     Log.d(
                         "MainFragment",
-                        "onlocationchanged, string before location assign. newLocation =$newLocation, location=$location"
+                        "entered onLocationChanged, error=$error, newLocation.time=${newLocation.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
+                    )
+                    Log.d(
+                        "MainFragment",
+                        "onlocationchanged, string before location assign. newLocation =$newLocation, location=$location, error=$error, newLocation.time=${newLocation.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
                     )
                     location = newLocation
                     Log.d(
                         "MainFragment",
-                        "onlocationchanged, string after location assign. newLocation =$newLocation, location=$location"
+                        "onlocationchanged, string after location assign. newLocation =$newLocation, location=$location, error=$error, location.time=${location?.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
                     )
+                    timeoutJobCancelReason = TimeoutJobCancelReasons.ON_LOC_CHANGED
+                    Log.d(
+                        "MainFragment",
+                        "onlocchanged, string before timeoutjob.cancel, timeOutJob=$timeOutJob"
+                    )
+                    timeOutJob?.cancel()
                 }
 
                 override fun onProviderDisabled(provider: String) {
                     super.onProviderDisabled(provider)
-                    Log.d("MainFragment", "onproviderdisabled, cancelling waiter")
-                    myjob?.cancel()
                     locationManager.removeUpdates(this)
-                    viewModel.setSpinnerVisibilityMainFragment(false)
-                    error = getLocationByGpsErrors.GPS_IS_OFF
+
+                    Log.d("MainFragment", "entered onproviderdisabled, error=$error")
+                    timeoutJobCancelReason = TimeoutJobCancelReasons.ON_PROVIDER_DISABLED
+                    Log.d(
+                        "MainFragment",
+                        "onproviderdisabled, string before timeoutjob.cancel, timeOutJob=$timeOutJob"
+                    )
+                    //error = GetLocationByGpsErrors.GPS_IS_OFF
+                    timeOutJob?.cancel()
                     //showNoGeoDialog()
                 }
             }
         if (locationManager
                 .isProviderEnabled(LocationManager.GPS_PROVIDER)
         ) {
-            Log.d("MainFragment", "string before requesting loc updates")
+            Log.d("MainFragment", "string before requesting loc updates, error=$error")
             locationManager.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
-                500,
-                0F,
+                Constants.REQUEST_LOCATION_UPDATES_MIN_TIME_MS,
+                Constants.REQUEST_LOCATION_UPDATES_MIN_DISTANCE_M,
                 gpsLocationListener
             )
-            Log.d("MainFragment", "string before launching waiter")
-            myjob = viewLifecycleOwner.lifecycleScope.launch {
-                repeat(20) {
-                    delay(500)
-                    Log.d("MainFragment", "string in waiter, iter $it")
-                    yield() //TODO mb change to if(isActive)
+            Log.d("MainFragment", "string before launching waiter, error=$error")
+            timeOutJob =
+                viewLifecycleOwner.lifecycleScope.launch {//TODO mb change to out of the box withTimeout()
+                    repeat(Constants.DETECT_GEO_TIMEOUT_CHECK_TIMES) {
+                        if (isActive) {
+                            delay(Constants.DETECT_GEO_TIMEOUT_CHECK_PERIOD_IN_MILLIS)
+                            Log.d("MainFragment", "string in waiter, iter $it, error=$error")
+                        } else {
+                            return@launch
+                        }
+                    }
+                    locationManager.removeUpdates(gpsLocationListener)
                 }
-                Log.d("MainFragment", "string after launching waiter")
-                //TODO mb change (assigning to location and checking location time again) to just setting error = LOC_DETECTION_FAILED, mb review timeout time
-                location =
-                    locationManager.getLastKnownLocation(
-                        LocationManager.GPS_PROVIDER
-                    ) ?: locationManager.getLastKnownLocation(
-                        LocationManager.NETWORK_PROVIDER
+            Log.d(
+                "MainFragment",
+                "string after launching waiter, before timeoutjob.join, error=$error"
+            )
+            timeOutJob.join()
+            Log.d("MainFragment", "string after timeoutjob.join, error=$error")
+            when (timeoutJobCancelReason) {
+                TimeoutJobCancelReasons.ON_LOC_CHANGED -> {
+                    Log.d("MainFragment", "entered timeoutJobCancelReasons.ON_LOC_CHANGED ->")
+                }
+                TimeoutJobCancelReasons.ON_PROVIDER_DISABLED -> {
+                    Log.d("MainFragment", "entered timeoutJobCancelReasons.ON_PROVIDER_DISABLED ->")
+                    error = GetLocationByGpsErrors.GPS_IS_OFF
+                }
+                TimeoutJobCancelReasons.NOT_CANCELLED -> {//reached timeout
+/* last try, get any, even old location. mb do this after function completes
+location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) ?:
+locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+ */
+                    Log.d(
+                        "MainFragment",
+                        "location=$location, string before when (abt location), error=$error)"
                     )
-                Log.d("MainFragment", "location=$location, string before when")
-                val locationTime = location?.time
-                when {
-                    location == null -> error = getLocationByGpsErrors.LOC_DETECTION_FAILED
-                    locationTime == null -> error = getLocationByGpsErrors.LOC_TIME_IS_NULL
-                    locationTime <=
-                            Calendar.getInstance().timeInMillis - Constants.maxLocAge ->
-                        error = getLocationByGpsErrors.AVAILABLE_LOC_TOO_OLD
+                    error = GetLocationByGpsErrors.LOC_DETECTION_FAILED
                 }
             }
-            Log.d("MainFragment", "string before myjob.join")
-            myjob.join()
         } else {
-            viewModel.setSpinnerVisibilityMainFragment(false)
-            error = getLocationByGpsErrors.GPS_IS_OFF
-            //showNoGeoDialog()
+            error = GetLocationByGpsErrors.GPS_IS_OFF
+//showNoGeoDialog()
         }
-        Log.d("MainFragment", "getLocationByGps penultimate string")
+        Log.d("MainFragment", "getLocationByGps penultimate string, error=$error")
         return Pair(location, error)
     }
 }

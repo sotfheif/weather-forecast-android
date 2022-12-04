@@ -97,7 +97,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             val currentDate: String = SimpleDateFormat("yyyy-MM-dd").format(Date())
             val weekLaterDate: String = SimpleDateFormat("yyyy-MM-dd").format(
-                Calendar.getInstance().timeInMillis + Constants.weekInMillis
+                Calendar.getInstance().timeInMillis + Constants.WEEK_IN_MILLIS
             )
 
             try {
