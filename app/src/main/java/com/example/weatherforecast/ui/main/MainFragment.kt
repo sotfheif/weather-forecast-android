@@ -61,10 +61,14 @@ class MainFragment : Fragment() {
                 if (isGranted) {
                     viewLifecycleOwner.lifecycleScope.launch {
                         tryGetCurrentLocForecast()  //TODO maybe better move this call somewhere else
+                        //mb unite next 3 lines into a sep fun
+                        Log.d("MainFragment", "line between trygetcur and setforec")
+                        setForecast(viewModel.getForecastResult.value)
+                        showDayForecast()
+                        viewModel.setSpinnerVisibilityMainFragment(false)
                         //viewModel.setSpinnerVisibilityMainFragment(false)
                     }
                 } else {
-                    //binding.statusImage.visibility = View.GONE
                     viewModel.setSpinnerVisibilityMainFragment(false)
                     showGeoPermissionRequiredDialog()
                 }
@@ -86,38 +90,6 @@ class MainFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 onShowForecastButtonClicked()
             }
-            /* replaced with suspend fun onshowforecastbuttonclicked
-            if (viewModel.locationSettingOption.value ==
-                MainViewModel.LocSetOptions.CURRENT
-            ) {
-                viewModel.setSpinnerVisibilityMainFragment(true)
-                viewLifecycleOwner.lifecycleScope.launch {
-                    checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
-                }
-            } else if (viewModel.locationSettingOption.value ==
-                MainViewModel.LocSetOptions.SELECT
-            ) {
-                if (viewModel.selectedCity.value?.name == null) {
-                    Snackbar.make(
-                        binding.showForecastButton,
-                        getString(R.string.select_city_snackbar),
-                        Snackbar.LENGTH_SHORT
-                    )
-                        .show()
-                } else {
-                    viewModel.selectedCity.value.let {
-                        it?.latitude?.let { it1 ->
-                            it.longitude?.let { it2 ->
-                                viewModel.setSpinnerVisibilityMainFragment(true)
-                                viewLifecycleOwner.lifecycleScope.launch {
-                                    viewModel.getForecastByCoords(it1, it2)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-             */
         }
         binding.rbCurrentCity.setOnClickListener {
             viewModel.setLocOption(MainViewModel.LocSetOptions.CURRENT)
@@ -149,7 +121,7 @@ class MainFragment : Fragment() {
         }
 
         binding.selectCityButton.setOnClickListener {//TODO add an error message if query textbox is empty
-            viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycleScope.launch {//TODO MOVE THIS BLOCK OF CODE INTO A FUNCTION, REPLACE WITH FUN CALL
                 var foundAnyCities = false
                 viewModel.resetForecastResult()
                 val job = viewLifecycleOwner.lifecycleScope.launch {
@@ -186,14 +158,9 @@ class MainFragment : Fragment() {
         }
 
 
-        viewModel.getForecastResult.observe(this.viewLifecycleOwner) {
-            val weekForecast = handleForecastResponse(it)
-            if (weekForecast[0].latitude != null) {
-                viewModel.setWeekForecast(weekForecast)
-            } else {
-                viewModel.resetWeekForecast()
-            }
-        }
+        /*viewModel.getForecastResult.observe(this.viewLifecycleOwner) {
+            setForecast(it)
+        }*/
         weatherCodeMap = mapOf(
             0 to getString(R.string.wc0),
             1 to getString(R.string.wc1),
@@ -233,7 +200,7 @@ class MainFragment : Fragment() {
             }
         }
 
-        viewModel.weekForecast.observe(this.viewLifecycleOwner) {
+        /*viewModel.weekForecast.observe(this.viewLifecycleOwner) {
             if (viewModel.weekForecast.value?.isEmpty() != false) {
                 binding.todayForecastTextView.text = ""
             } else {
@@ -251,7 +218,7 @@ class MainFragment : Fragment() {
             }
             binding.weekForecastButton.isEnabled =
                 (viewModel.weekForecast.value?.isNotEmpty() == true)
-        }
+        }*/
 
 
     }
@@ -330,6 +297,10 @@ class MainFragment : Fragment() {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED -> {
                 tryGetCurrentLocForecast()
+                setForecast(viewModel.getForecastResult.value)
+                showDayForecast()
+                viewModel.setSpinnerVisibilityMainFragment(false)
+
                 //viewModel.setSpinnerVisibilityMainFragment(false)
             }
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
@@ -557,12 +528,11 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
     }
 
     suspend fun onShowForecastButtonClicked() {
+        viewModel.setSpinnerVisibilityMainFragment(true)
         when (viewModel.locationSettingOption.value) {
             MainViewModel.LocSetOptions.CURRENT -> {
-                viewModel.setSpinnerVisibilityMainFragment(true)
-                viewLifecycleOwner.lifecycleScope.launch {
-                    checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
-                }.join()
+                //viewModel.setSpinnerVisibilityMainFragment(true)
+                checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
             }
             MainViewModel.LocSetOptions.SELECT -> {
                 if (viewModel.selectedCity.value?.name == null) {
@@ -576,16 +546,54 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
                     viewModel.selectedCity.value.let {
                         it?.latitude?.let { it1 ->
                             it.longitude?.let { it2 ->
-                                viewModel.setSpinnerVisibilityMainFragment(true)
-                                viewLifecycleOwner.lifecycleScope.launch {
-                                    viewModel.getForecastByCoords(it1, it2)
-                                }
+                                //viewModel.setSpinnerVisibilityMainFragment(true)
+                                viewModel.getForecastByCoords(it1, it2)
                             }
                         }
                     }
+                    setForecast(viewModel.getForecastResult.value)
+                    showDayForecast()
+                    viewModel.setSpinnerVisibilityMainFragment(false)
                 }
             }
             else -> {} //shouldn't be necessary after replacing livedata with a normal variable
         }
+        /* moving to both when branches, cause had to somehow wait for activitylauncher,
+        mb should move to distinct function and pass it as lambda in higher order fun or just call it or smth
+        setForecast(viewModel.getForecastResult.value)
+        showDayForecast()
+        viewModel.setSpinnerVisibilityMainFragment(false)*/
+    }
+
+    fun setForecast(forecastResult: ForecastResponse?) {
+        Log.d("MainFragment", "entered setForecast, forecastResult=$forecastResult")
+        if (forecastResult != null) {
+            val weekForecast = handleForecastResponse(forecastResult)
+            if (weekForecast[0].latitude != null) { //TODO replace this check with something more elegant
+                viewModel.setWeekForecast(weekForecast)
+            } else {
+                viewModel.resetWeekForecast()
+            }
+        }
+    }
+
+    fun showDayForecast() {
+        if (viewModel.weekForecast.value?.isEmpty() != false) {
+            binding.todayForecastTextView.text = ""
+        } else {
+            val todayForecast = viewModel.weekForecast.value?.get(0)
+            binding.todayForecastTextView.text = getString(
+                R.string.day_forecast,
+                todayForecast?.temperature2mMin ?: "",
+                todayForecast?.temperature2mMax ?: "",
+                todayForecast?.weather ?: "",
+                todayForecast?.pressure ?: "",
+                todayForecast?.windspeed10mMax ?: "",
+                todayForecast?.winddirection10mDominant ?: "",
+                todayForecast?.relativeHumidity ?: ""
+            )
+        }
+        binding.weekForecastButton.isEnabled =
+            (viewModel.weekForecast.value?.isNotEmpty() == true)
     }
 }
