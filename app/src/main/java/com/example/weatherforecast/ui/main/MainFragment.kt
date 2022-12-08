@@ -31,6 +31,7 @@ import java.util.*
 import kotlin.math.round
 import kotlin.math.roundToInt
 
+const val TAG = "MainFragment"
 class MainFragment : Fragment() {
     //TODO where necessary prevent calling functions (like after clicking a button), when they are already running
     //TODO check setSpinnerVisibility placement
@@ -54,6 +55,7 @@ class MainFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate")
         viewModel.requestLocPermissionLauncher =
             registerForActivityResult(
                 ActivityResultContracts.RequestPermission()
@@ -79,12 +81,16 @@ class MainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        Log.d(TAG, "onCreateView")
         binding = FragmentMainBinding.inflate(inflater, container, false)
         return binding.root
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.d(TAG, "onViewCreated")
+        //TODO bug after returning from weekforecastfragment, ui elements dissappear (cuase removed livedata observers)
 
         binding.showForecastButton.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
@@ -106,7 +112,7 @@ class MainFragment : Fragment() {
                     binding.textField.isEnabled = false
                     binding.selectCityButton.isEnabled = false
                     viewModel.resetSelectedCity()
-                    viewModel.resetWeekForecast()
+                    viewModel.resetWeekForecast() //TODO bug if this is uncommented. resets week forecast, after returning from weekforecast fragment
                 }
                 MainViewModel.LocSetOptions.SELECT -> {
                     binding.rbSelectCity.isChecked = true
@@ -221,6 +227,47 @@ class MainFragment : Fragment() {
         }*/
 
 
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        Log.d(TAG, "onSaveInstanceState")
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "onPause")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d(TAG, "onStop")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "onDestroy")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        Log.d(TAG, "onDestroyView")
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        Log.d(TAG, "onViewStateRestored")
+        showDayForecast()
     }
 
 
@@ -570,8 +617,10 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         if (forecastResult != null) {
             val weekForecast = handleForecastResponse(forecastResult)
             if (weekForecast[0].latitude != null) { //TODO replace this check with something more elegant
+                Log.d(TAG, "weekForecast[0].latitude != null")
                 viewModel.setWeekForecast(weekForecast)
             } else {
+                Log.d(TAG, "weekForecast[0].latitude == null")
                 viewModel.resetWeekForecast()
             }
         }
