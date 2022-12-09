@@ -33,8 +33,11 @@ import kotlin.math.roundToInt
 
 const val TAG = "MainFragment"
 class MainFragment : Fragment() {
-    //TODO where necessary prevent calling functions (like after clicking a button), when they are already running
+    //TODO on init set binding.selectedCityTextView.text in UI
+    //TODO where necessary prevent calling functions (like after clicking a button), when they are already running. or stop some functdions after conflicting functions are called
     //TODO check setSpinnerVisibility placement
+    //TODO download web services location db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
+    //TODO in search field (before any chars entered) show previous location search queries(or selected results(locations)?
 
     /*
     companion object {
@@ -97,29 +100,48 @@ class MainFragment : Fragment() {
                 onShowForecastButtonClicked()
             }
         }
-        binding.rbCurrentCity.setOnClickListener {
+        binding.rbCurrentCity.setOnClickListener { //TODO change this to button, remove rbselectcity. (and mb replace locsettingoption viemodel var with checking if selectedcity==City() (default) )
+            Log.d(TAG, "rbCurrentCity onclicklistener")
+            /*if(viewModel.locationSettingOption.value==MainViewModel.LocSetOptions.CURRENT){
+                return@setOnClickListener
+            }*/
             viewModel.setLocOption(MainViewModel.LocSetOptions.CURRENT)
             viewModel.resetWeekForecast()
+            //binding.rbCurrentCity.isChecked = true
+            viewModel.resetSelectedCity()
+            binding.selectedCityTextView.text =
+                getString(R.string.selected_city_text_current_location)
+            Log.d(
+                TAG,
+                "set selectedCityTextView.text = ${getString(R.string.selected_city_text_current_location)}"
+            )
         }
         binding.rbSelectCity.setOnClickListener {
+            /*
+            Log.d(TAG, "rbSelectCity onclicklistener")
+            if(viewModel.locationSettingOption.value==MainViewModel.LocSetOptions.SELECT){
+                return@setOnClickListener
+            }
             viewModel.setLocOption(MainViewModel.LocSetOptions.SELECT)
             viewModel.resetWeekForecast()
+            */
         }
         viewModel.locationSettingOption.observe(this.viewLifecycleOwner) { option ->
             when (option) {
-                MainViewModel.LocSetOptions.CURRENT -> {
+                MainViewModel.LocSetOptions.CURRENT -> {/*
                     binding.rbCurrentCity.isChecked = true
                     binding.textField.isEnabled = false
                     binding.selectCityButton.isEnabled = false
                     viewModel.resetSelectedCity()
-                    viewModel.resetWeekForecast() //TODO bug if this is uncommented. resets week forecast, after returning from weekforecast fragment
+                    viewModel.resetWeekForecast()
+                */
                 }
-                MainViewModel.LocSetOptions.SELECT -> {
+                MainViewModel.LocSetOptions.SELECT -> {/*
                     binding.rbSelectCity.isChecked = true
                     binding.textField.isEnabled = true
                     binding.selectCityButton.isEnabled = true
                     binding.selectedCityTextView.text = ""
-                    viewModel.resetWeekForecast()
+                    viewModel.resetWeekForecast()*/
                 }
                 else -> {}
             }
@@ -576,12 +598,12 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
     suspend fun onShowForecastButtonClicked() {
         viewModel.setSpinnerVisibilityMainFragment(true)
-        when (viewModel.locationSettingOption.value) {
-            MainViewModel.LocSetOptions.CURRENT -> {
+        when {
+            viewModel.selectedCity.value == viewModel.emptyCity/*MainViewModel.LocSetOptions.CURRENT*/ -> {
                 //viewModel.setSpinnerVisibilityMainFragment(true)
                 checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
             }
-            MainViewModel.LocSetOptions.SELECT -> {
+            else /*MainViewModel.LocSetOptions.SELECT*/ -> {
                 if (viewModel.selectedCity.value?.name == null) {
                     Snackbar.make(
                         binding.showForecastButton,
@@ -603,7 +625,6 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
                     viewModel.setSpinnerVisibilityMainFragment(false)
                 }
             }
-            else -> {} //shouldn't be necessary after replacing livedata with a normal variable
         }
         /* moving to both when branches, cause had to somehow wait for activitylauncher,
         mb should move to distinct function and pass it as lambda in higher order fun or just call it or smth

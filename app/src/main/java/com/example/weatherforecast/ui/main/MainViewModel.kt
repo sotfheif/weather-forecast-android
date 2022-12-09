@@ -30,7 +30,7 @@ class MainViewModel : ViewModel() {
     private var _getForecastResult = MutableLiveData<ForecastResponse>()
     val getForecastResult: LiveData<ForecastResponse>
         get() = _getForecastResult
-    private val _selectedCity = MutableLiveData<City>()
+    private val _selectedCity = MutableLiveData<City>(City())
     val selectedCity: LiveData<City>
         get() = _selectedCity
     private val _weekForecast = MutableLiveData<List<DayForecast>>()
@@ -51,6 +51,8 @@ class MainViewModel : ViewModel() {
     private var hourly = "pressure_msl,relativehumidity_2m"
     private var daily =
         "weathercode,temperature_2m_min,temperature_2m_max,windspeed_10m_max,winddirection_10m_dominant"
+
+    public val emptyCity = City()
 
     enum class LocSetOptions {
         CURRENT, SELECT
