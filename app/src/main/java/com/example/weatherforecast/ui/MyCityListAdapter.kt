@@ -14,10 +14,10 @@ class  MyCityListAdapter(private val onItemClicked: (City) -> Unit) :
 
     class MyCityViewHolder(private var binding: FragmentCityBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(city: City) {
+        fun bind(city: City) {//viewModel.prep
             binding.name.text = listOfNotNull(
-                city.name,
-                city.admin4, city.admin3, city.admin2, city.admin1
+                city.name, city.admin4, city.admin3,
+                city.admin2, city.admin1, city.country,
             )
                 .joinToString(", ")
         }

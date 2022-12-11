@@ -116,15 +116,15 @@ class MainViewModel : ViewModel() {
                 _getForecastResult.value = listResult
             } catch (_: Exception) {
             } finally {
-                setSpinnerVisibilityMainFragment(false)
+                //setSpinnerVisibilityMainFragment(false)
             }
         }.join()
     }
 
     fun prepCityForUi(city: City): String {
         return listOfNotNull(
-            city.name,
-            city.admin4, city.admin3, city.admin2, city.admin1
+            city.name, city.admin4, city.admin3,
+            city.admin2, city.admin1, city.country,
         )
             .joinToString(", ")
     }
@@ -134,7 +134,7 @@ class MainViewModel : ViewModel() {
     }
 
     fun resetSelectedCity() {
-        _selectedCity.value = City()
+        _selectedCity.value = emptyCity
     }
 
     fun setWeekForecast(weekForecastp: List<DayForecast>) {
@@ -148,12 +148,13 @@ class MainViewModel : ViewModel() {
         _getForecastResult.value = ForecastResponse()
     }
 
-    fun setSpinnerVisibilityMainFragment(b: Boolean) {
+    fun setSpinnerVisibilityMainFragment(b: Boolean) { //replaced by manually setting view.visibility in mainframent
         _statusImageMainFragment.value = b
     }
 
-    private fun setSpinnerVisibilityCityFragment(b: Boolean) {
+    private fun setSpinnerVisibilityCityFragment(b: Boolean) { //replaced by manually setting view.visibility in cityframent
         _statusImageCityFragment.value = b
     }
+
 
 }

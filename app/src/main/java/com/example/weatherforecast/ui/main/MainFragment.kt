@@ -126,30 +126,31 @@ class MainFragment : Fragment() {
             viewModel.resetWeekForecast()
             */
         }
+        /*
         viewModel.locationSettingOption.observe(this.viewLifecycleOwner) { option ->
             when (option) {
-                MainViewModel.LocSetOptions.CURRENT -> {/*
+                MainViewModel.LocSetOptions.CURRENT -> {
                     binding.rbCurrentCity.isChecked = true
                     binding.textField.isEnabled = false
                     binding.selectCityButton.isEnabled = false
                     viewModel.resetSelectedCity()
                     viewModel.resetWeekForecast()
-                */
                 }
-                MainViewModel.LocSetOptions.SELECT -> {/*
+                MainViewModel.LocSetOptions.SELECT -> {
                     binding.rbSelectCity.isChecked = true
                     binding.textField.isEnabled = true
                     binding.selectCityButton.isEnabled = true
                     binding.selectedCityTextView.text = ""
-                    viewModel.resetWeekForecast()*/
+                    viewModel.resetWeekForecast()
                 }
                 else -> {}
             }
 
         }
+         */
 
         binding.selectCityButton.setOnClickListener {//TODO add an error message if query textbox is empty
-            viewLifecycleOwner.lifecycleScope.launch {//TODO MOVE THIS BLOCK OF CODE INTO A FUNCTION, REPLACE WITH FUN CALL
+            viewLifecycleOwner.lifecycleScope.launch {//TODO  mb MOVE THIS BLOCK OF CODE INTO A FUNCTION, REPLACE WITH FUN CALL
                 var foundAnyCities = false
                 viewModel.resetForecastResult()
                 val job = viewLifecycleOwner.lifecycleScope.launch {
@@ -170,7 +171,7 @@ class MainFragment : Fragment() {
             val action = MainFragmentDirections.actionMainFragmentToItemFragment()
             this.findNavController().navigate(action)
         }
-
+/*
         viewModel.selectedCity.observe(this.viewLifecycleOwner) { city ->
             if (city.name == null) {
                 if (viewModel.locationSettingOption.value == MainViewModel.LocSetOptions.CURRENT) {
@@ -183,7 +184,7 @@ class MainFragment : Fragment() {
             } else city.let {
                 binding.selectedCityTextView.text = viewModel.prepCityForUi(city)
             }
-        }
+        }*/
 
 
         /*viewModel.getForecastResult.observe(this.viewLifecycleOwner) {
