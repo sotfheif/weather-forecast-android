@@ -70,10 +70,11 @@ class MainFragment : Fragment() {
                         Log.d("MainFragment", "line between trygetcur and setforec")
                         setForecast(viewModel.getForecastResult.value)
                         showDayForecast()
-                        setLoadingSpinnerVisibility(false)
+                        viewModel.setSpinnerVisibilityMainFragment(false)
+                        //viewModel.setSpinnerVisibilityMainFragment(false)
                     }
                 } else {
-                    setLoadingSpinnerVisibility(false)
+                    viewModel.setSpinnerVisibilityMainFragment(false)
                     showGeoPermissionRequiredDialog()
                 }
             }
@@ -219,7 +220,6 @@ class MainFragment : Fragment() {
             96 to getString(R.string.wc96),
             99 to getString(R.string.wc99)
         )
-        /*
         viewModel.statusImageMainFragment.observe(this.viewLifecycleOwner)
         {
             if (it) {
@@ -227,7 +227,7 @@ class MainFragment : Fragment() {
             } else {
                 binding.statusImage.visibility = View.GONE
             }
-        }*/
+        }
 
         /*viewModel.weekForecast.observe(this.viewLifecycleOwner) {
             if (viewModel.weekForecast.value?.isEmpty() != false) {
@@ -355,7 +355,7 @@ class MainFragment : Fragment() {
                 )
             }
             .setNegativeButton(R.string.location_permission_rationale_neg_button) { _, _ ->
-                setLoadingSpinnerVisibility(false)
+                viewModel.setSpinnerVisibilityMainFragment(false)
             }
             .show()
     }
@@ -369,7 +369,7 @@ class MainFragment : Fragment() {
                 tryGetCurrentLocForecast()
                 setForecast(viewModel.getForecastResult.value)
                 showDayForecast()
-                setLoadingSpinnerVisibility(false)
+                viewModel.setSpinnerVisibilityMainFragment(false)
 
                 //viewModel.setSpinnerVisibilityMainFragment(false)
             }
@@ -456,18 +456,18 @@ class MainFragment : Fragment() {
             Log.d("MainFragment", "string after newLocation, error assignment")
             when (error) {//TODO mb replace returns/spinnervissets, or leave one
                 GetLocationByGpsErrors.GPS_IS_OFF -> {
-                    setLoadingSpinnerVisibility(false)
+                    viewModel.setSpinnerVisibilityMainFragment(false)
                     showNoGeoDialog(); return
                 }
                 GetLocationByGpsErrors.LOC_DETECTION_FAILED -> {
-                    setLoadingSpinnerVisibility(false)
+                    viewModel.setSpinnerVisibilityMainFragment(false)
                     Log.d("MainFragment", "error=$error")
                     showFailedToDetectGeoDialog(); return
                 }
                 GetLocationByGpsErrors.NO_ERROR -> {
                     if (newLocation == null) {
                         Log.d("MainFragment", "error=$error, newLocation == null")
-                        setLoadingSpinnerVisibility(false)
+                        viewModel.setSpinnerVisibilityMainFragment(false)
                         showUnexpectedMistake(); return //TODO change showUnexpectedMistake showFailedToDetectGeo in release
                     }
                 }
@@ -475,7 +475,7 @@ class MainFragment : Fragment() {
             location = newLocation
         }
         setLocationGetForecast(location)
-        //setLoadingSpinnerVisibility(false)
+        //viewModel.setSpinnerVisibilityMainFragment(false)
     }
 
     fun chooseLatestLocation(
@@ -598,7 +598,7 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
     }
 
     suspend fun onShowForecastButtonClicked() {
-        setLoadingSpinnerVisibility(true)
+        viewModel.setSpinnerVisibilityMainFragment(true)
         when {
             viewModel.selectedCity.value == viewModel.emptyCity/*MainViewModel.LocSetOptions.CURRENT*/ -> {
                 //viewModel.setSpinnerVisibilityMainFragment(true)
@@ -623,7 +623,7 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
                     }
                     setForecast(viewModel.getForecastResult.value)
                     showDayForecast()
-                    setLoadingSpinnerVisibility(false)
+                    viewModel.setSpinnerVisibilityMainFragment(false)
                 }
             }
         }
@@ -666,13 +666,5 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         }
         binding.weekForecastButton.isEnabled =
             (viewModel.weekForecast.value?.isNotEmpty() == true)
-    }
-
-    fun setLoadingSpinnerVisibility(b: Boolean) {
-        if (b) {
-            binding.statusImage.visibility = View.VISIBLE
-        } else {
-            binding.statusImage.visibility = View.GONE
-        }
     }
 }
