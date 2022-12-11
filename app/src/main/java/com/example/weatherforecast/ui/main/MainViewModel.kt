@@ -27,14 +27,14 @@ class MainViewModel : ViewModel() {
     val statusImageCityFragment: LiveData<Boolean>
         get() = _statusImageCityFragment
 
-    private var _getForecastResult = MutableLiveData<ForecastResponse>()
-    val getForecastResult: LiveData<ForecastResponse>
+    private var _getForecastResult: ForecastResponse = ForecastResponse()
+    val getForecastResult: ForecastResponse
         get() = _getForecastResult
-    private val _selectedCity = MutableLiveData<City>(City())
-    val selectedCity: LiveData<City>
+    private var _selectedCity: City = City()
+    val selectedCity: City
         get() = _selectedCity
-    private val _weekForecast = MutableLiveData<List<DayForecast>>()
-    val weekForecast: LiveData<List<DayForecast>>
+    private var _weekForecast: List<DayForecast> = listOf()
+    val weekForecast: List<DayForecast>
         get() = _weekForecast
     private var _citySearchResult = listOf<City>()
     val citySearchResult: List<City> get() = _citySearchResult
@@ -52,20 +52,20 @@ class MainViewModel : ViewModel() {
     private var daily =
         "weathercode,temperature_2m_min,temperature_2m_max,windspeed_10m_max,winddirection_10m_dominant"
 
-    public val emptyCity = City()
+    val emptyCity = City()
 
-    enum class LocSetOptions {
-        CURRENT, SELECT
-    }
+    /*
+        enum class LocSetOptions {
+            CURRENT, SELECT
+        }
+        private var _locationSettingOption: LocSetOptions = LocSetOptions.CURRENT
+        val locationSettingOption: LocSetOptions
+            get() = _locationSettingOption
 
-    private val _locationSettingOption = MutableLiveData(LocSetOptions.CURRENT)
-    val locationSettingOption: LiveData<LocSetOptions>
-        get() = _locationSettingOption
-
-    fun setLocOption(locSetOption: LocSetOptions) {
-        _locationSettingOption.value = locSetOption
-    }
-
+        fun setLocOption(locSetOption: LocSetOptions) {
+            _locationSettingOption = locSetOption
+        }
+    */
     fun setLocation(location: Location) {
         _currentLocation = location
         latitude = _currentLocation.latitude
@@ -113,7 +113,7 @@ class MainViewModel : ViewModel() {
                         hourly = hourly,
                         daily = daily
                     )
-                _getForecastResult.value = listResult
+                _getForecastResult = listResult
             } catch (_: Exception) {
             } finally {
                 //setSpinnerVisibilityMainFragment(false)
@@ -130,22 +130,22 @@ class MainViewModel : ViewModel() {
     }
 
     fun setSelectedCity(city: City) {
-        _selectedCity.value = city
+        _selectedCity = city
     }
 
     fun resetSelectedCity() {
-        _selectedCity.value = emptyCity
+        _selectedCity = emptyCity
     }
 
     fun setWeekForecast(weekForecastp: List<DayForecast>) {
-        _weekForecast.value = weekForecastp
+        _weekForecast = weekForecastp
     }
 
     fun resetWeekForecast() {
-        _weekForecast.value = listOf()
+        _weekForecast = listOf()
     }
     fun resetForecastResult() {
-        _getForecastResult.value = ForecastResponse()
+        _getForecastResult = ForecastResponse()
     }
 
     fun setSpinnerVisibilityMainFragment(b: Boolean) { //replaced by manually setting view.visibility in mainframent

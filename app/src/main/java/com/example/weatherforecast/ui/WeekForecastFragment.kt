@@ -28,10 +28,6 @@ class WeekForecastFragment : Fragment() {
         val myWeekForecastListAdapter = MyWeekForecastListAdapter()
         binding.recyclerView.layoutManager = LinearLayoutManager(this.context)
         binding.recyclerView.adapter = myWeekForecastListAdapter
-        viewModel.weekForecast.observe(this.viewLifecycleOwner) { weekForecast ->
-            weekForecast.let {
-                myWeekForecastListAdapter.submitList(it)
-            }
-        }
+        myWeekForecastListAdapter.submitList(viewModel.weekForecast)
     }
 }

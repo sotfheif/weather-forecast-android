@@ -10,10 +10,8 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.weatherforecast.R
 import com.example.weatherforecast.databinding.FragmentCityListBinding
-import com.example.weatherforecast.network.City
 import com.example.weatherforecast.ui.main.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 
 
 class CityFragment :
@@ -34,6 +32,7 @@ class CityFragment :
         super.onViewCreated(view, savedInstanceState)
         val myCityListAdapter = MyCityListAdapter {
             viewModel.setSelectedCity(it)
+            viewModel.resetWeekForecast()
             val action = CityFragmentDirections.actionCityFragmentToMainFragment()
             view.findNavController().navigate(action)
         }

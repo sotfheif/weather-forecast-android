@@ -33,8 +33,7 @@ import kotlin.math.roundToInt
 
 const val TAG = "MainFragment"
 class MainFragment : Fragment() {
-    //TODO on init set binding.selectedCityTextView.text in UI
-    //TODO where necessary prevent calling functions (like after clicking a button), when they are already running. or stop some functdions after conflicting functions are called
+    //TODO where necessary prevent calling functions (like after clicking a button), when they are already running. or stop some functions after conflicting functions are called
     //TODO check setSpinnerVisibility placement
     //TODO download web services location db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
     //TODO in search field (before any chars entered) show previous location search queries(or selected results(locations)?
@@ -67,11 +66,9 @@ class MainFragment : Fragment() {
                     viewLifecycleOwner.lifecycleScope.launch {
                         tryGetCurrentLocForecast()  //TODO maybe better move this call somewhere else
                         //mb unite next 3 lines into a sep fun
-                        Log.d("MainFragment", "line between trygetcur and setforec")
-                        setForecast(viewModel.getForecastResult.value)
-                        showDayForecast()
+                        setForecast(viewModel.getForecastResult)
                         viewModel.setSpinnerVisibilityMainFragment(false)
-                        //viewModel.setSpinnerVisibilityMainFragment(false)
+                        showDayForecast()
                     }
                 } else {
                     viewModel.setSpinnerVisibilityMainFragment(false)
@@ -93,21 +90,20 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "onViewCreated")
-        //TODO bug after returning from weekforecastfragment, ui elements dissappear (cuase removed livedata observers)
-
         binding.showForecastButton.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 onShowForecastButtonClicked()
             }
         }
-        binding.rbCurrentCity.setOnClickListener { //TODO change this to button, remove rbselectcity. (and mb replace locsettingoption viemodel var with checking if selectedcity==City() (default) )
+        binding.rbCurrentCity.setOnClickListener { //TODO change this to button, remove rbselectcity
             Log.d(TAG, "rbCurrentCity onclicklistener")
-            /*if(viewModel.locationSettingOption.value==MainViewModel.LocSetOptions.CURRENT){
+            if (viewModel.selectedCity == viewModel.emptyCity) {
                 return@setOnClickListener
-            }*/
-            viewModel.setLocOption(MainViewModel.LocSetOptions.CURRENT)
+            }
             viewModel.resetWeekForecast()
-            //binding.rbCurrentCity.isChecked = true
+            binding.weekForecastButton.isEnabled =
+                (viewModel.weekForecast.isNotEmpty())
+            binding.todayForecastTextView.text = ""
             viewModel.resetSelectedCity()
             binding.selectedCityTextView.text =
                 getString(R.string.selected_city_text_current_location)
@@ -116,17 +112,17 @@ class MainFragment : Fragment() {
                 "set selectedCityTextView.text = ${getString(R.string.selected_city_text_current_location)}"
             )
         }
+        /*
         binding.rbSelectCity.setOnClickListener {
-            /*
+
             Log.d(TAG, "rbSelectCity onclicklistener")
             if(viewModel.locationSettingOption.value==MainViewModel.LocSetOptions.SELECT){
                 return@setOnClickListener
             }
             viewModel.setLocOption(MainViewModel.LocSetOptions.SELECT)
             viewModel.resetWeekForecast()
-            */
+
         }
-        /*
         viewModel.locationSettingOption.observe(this.viewLifecycleOwner) { option ->
             when (option) {
                 MainViewModel.LocSetOptions.CURRENT -> {
@@ -149,20 +145,29 @@ class MainFragment : Fragment() {
         }
          */
 
-        binding.selectCityButton.setOnClickListener {//TODO add an error message if query textbox is empty
-            viewLifecycleOwner.lifecycleScope.launch {//TODO  mb MOVE THIS BLOCK OF CODE INTO A FUNCTION, REPLACE WITH FUN CALL
+        binding.selectCityButton.setOnClickListener {//TODO  mb extract THIS BLOCK OF CODE INTO A FUNCTION
+            if (binding.textFieldInput.text.toString().isBlank()) {
+                Snackbar.make(
+                    binding.showForecastButton,
+                    getString(R.string.enter_city_snackbar),
+                    Snackbar.LENGTH_SHORT
+                )
+                    .show()
+            } else {
                 var foundAnyCities = false
                 viewModel.resetForecastResult()
-                val job = viewLifecycleOwner.lifecycleScope.launch {
-                    foundAnyCities =
-                        viewModel.getCitiesByName(binding.textFieldInput.text.toString())
-                }
-                job.join()
-                if (foundAnyCities) {
-                    val action = MainFragmentDirections.actionMainFragmentToCityFragment()
-                    this@MainFragment.findNavController().navigate(action)
-                } else {
-                    showCityNotFoundDialog()
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val job = viewLifecycleOwner.lifecycleScope.launch {
+                        foundAnyCities =
+                            viewModel.getCitiesByName(binding.textFieldInput.text.toString())
+                    }
+                    job.join()
+                    if (foundAnyCities) {
+                        val action = MainFragmentDirections.actionMainFragmentToCityFragment()
+                        this@MainFragment.findNavController().navigate(action)
+                    } else {
+                        showCityNotFoundDialog()
+                    }
                 }
             }
         }
@@ -181,7 +186,7 @@ class MainFragment : Fragment() {
                 } else {
                     binding.selectedCityTextView.text = ""
                 }
-            } else city.let {
+            } else  {
                 binding.selectedCityTextView.text = viewModel.prepCityForUi(city)
             }
         }*/
@@ -252,45 +257,52 @@ class MainFragment : Fragment() {
 
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        Log.d(TAG, "onSaveInstanceState")
-    }
+    /*
+        override fun onSaveInstanceState(outState: Bundle) {
+            super.onSaveInstanceState(outState)
+            Log.d(TAG, "onSaveInstanceState")
+        }
 
-    override fun onStart() {
-        super.onStart()
-        Log.d(TAG, "onStart")
-    }
+        override fun onStart() {
+            super.onStart()
+            Log.d(TAG, "onStart")
+        }
 
-    override fun onPause() {
-        super.onPause()
-        Log.d(TAG, "onPause")
-    }
+        override fun onPause() {
+            super.onPause()
+            Log.d(TAG, "onPause")
+        }
 
-    override fun onResume() {
-        super.onResume()
-        Log.d(TAG, "onResume")
-    }
+        override fun onResume() {
+            super.onResume()
+            Log.d(TAG, "onResume")
+        }
 
-    override fun onStop() {
-        super.onStop()
-        Log.d(TAG, "onStop")
-    }
+        override fun onStop() {
+            super.onStop()
+            Log.d(TAG, "onStop")
+        }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "onDestroy")
-    }
+        override fun onDestroy() {
+            super.onDestroy()
+            Log.d(TAG, "onDestroy")
+        }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        Log.d(TAG, "onDestroyView")
-    }
-
+        override fun onDestroyView() {
+            super.onDestroyView()
+            Log.d(TAG, "onDestroyView")
+        }
+    */
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         Log.d(TAG, "onViewStateRestored")
         showDayForecast()
+        viewModel.selectedCity.let {
+            binding.selectedCityTextView.text = if (it == viewModel.emptyCity)
+                getString(R.string.selected_city_text_current_location) else viewModel.prepCityForUi(
+                it
+            )
+        }
     }
 
 
@@ -367,11 +379,9 @@ class MainFragment : Fragment() {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED -> {
                 tryGetCurrentLocForecast()
-                setForecast(viewModel.getForecastResult.value)
+                setForecast(viewModel.getForecastResult)
                 showDayForecast()
                 viewModel.setSpinnerVisibilityMainFragment(false)
-
-                //viewModel.setSpinnerVisibilityMainFragment(false)
             }
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
                 //viewModel.setSpinnerVisibilityMainFragment(false)
@@ -385,7 +395,7 @@ class MainFragment : Fragment() {
         }
     }
 
-    suspend fun setLocationGetForecast(location: Location) {
+    private suspend fun setLocationGetForecast(location: Location) {
         viewModel.setLocation(location)
         viewModel.currentLocation.let {
             viewModel.getForecastByCoords(it.latitude, it.longitude)
@@ -478,7 +488,7 @@ class MainFragment : Fragment() {
         //viewModel.setSpinnerVisibilityMainFragment(false)
     }
 
-    fun chooseLatestLocation(
+    private fun chooseLatestLocation(
         latestKnownLocation1: Location?,
         latestKnownLocation2: Location?
     ): Location? {
@@ -597,35 +607,28 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         return Pair(location, error)
     }
 
-    suspend fun onShowForecastButtonClicked() {
+    private suspend fun onShowForecastButtonClicked() {
         viewModel.setSpinnerVisibilityMainFragment(true)
-        when {
-            viewModel.selectedCity.value == viewModel.emptyCity/*MainViewModel.LocSetOptions.CURRENT*/ -> {
-                //viewModel.setSpinnerVisibilityMainFragment(true)
-                checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
-            }
-            else /*MainViewModel.LocSetOptions.SELECT*/ -> {
-                if (viewModel.selectedCity.value?.name == null) {
-                    Snackbar.make(
-                        binding.showForecastButton,
-                        getString(R.string.select_city_snackbar),
-                        Snackbar.LENGTH_SHORT
-                    )
-                        .show()
-                } else {
-                    viewModel.selectedCity.value.let {
-                        it?.latitude?.let { it1 ->
-                            it.longitude?.let { it2 ->
-                                //viewModel.setSpinnerVisibilityMainFragment(true)
-                                viewModel.getForecastByCoords(it1, it2)
-                            }
-                        }
+        if (viewModel.selectedCity == viewModel.emptyCity) {
+            checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
+        } else /*MainViewModel.LocSetOptions.SELECT*/ {
+            if (viewModel.selectedCity.name == null) {
+                Snackbar.make(
+                    binding.showForecastButton,
+                    getString(R.string.select_city_snackbar),
+                    Snackbar.LENGTH_SHORT
+                )
+                    .show()
+            } else {
+                viewModel.selectedCity.let {
+                    if (it.latitude != null && it.longitude != null) {
+                        viewModel.getForecastByCoords(it.latitude, it.longitude)
+                        setForecast(viewModel.getForecastResult)
+                        showDayForecast()
                     }
-                    setForecast(viewModel.getForecastResult.value)
-                    showDayForecast()
-                    viewModel.setSpinnerVisibilityMainFragment(false)
                 }
             }
+            viewModel.setSpinnerVisibilityMainFragment(false)
         }
         /* moving to both when branches, cause had to somehow wait for activitylauncher,
         mb should move to distinct function and pass it as lambda in higher order fun or just call it or smth
@@ -634,37 +637,35 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         viewModel.setSpinnerVisibilityMainFragment(false)*/
     }
 
-    fun setForecast(forecastResult: ForecastResponse?) {
+    private fun setForecast(forecastResult: ForecastResponse) {
         Log.d("MainFragment", "entered setForecast, forecastResult=$forecastResult")
-        if (forecastResult != null) {
-            val weekForecast = handleForecastResponse(forecastResult)
-            if (weekForecast[0].latitude != null) { //TODO replace this check with something more elegant
-                Log.d(TAG, "weekForecast[0].latitude != null")
-                viewModel.setWeekForecast(weekForecast)
-            } else {
-                Log.d(TAG, "weekForecast[0].latitude == null")
-                viewModel.resetWeekForecast()
-            }
+        val weekForecast = handleForecastResponse(forecastResult)
+        if (weekForecast[0].latitude != null) { //TODO mb replace this check with something more elegant
+            Log.d(TAG, "weekForecast[0].latitude != null")
+            viewModel.setWeekForecast(weekForecast)
+        } else {
+            Log.d(TAG, "weekForecast[0].latitude == null")
+            viewModel.resetWeekForecast()
         }
     }
 
-    fun showDayForecast() {
-        if (viewModel.weekForecast.value?.isEmpty() != false) {
+    private fun showDayForecast() {
+        if (viewModel.weekForecast.isEmpty()) {
             binding.todayForecastTextView.text = ""
         } else {
-            val todayForecast = viewModel.weekForecast.value?.get(0)
+            val todayForecast = viewModel.weekForecast[0]
             binding.todayForecastTextView.text = getString(
                 R.string.day_forecast,
-                todayForecast?.temperature2mMin ?: "",
-                todayForecast?.temperature2mMax ?: "",
-                todayForecast?.weather ?: "",
-                todayForecast?.pressure ?: "",
-                todayForecast?.windspeed10mMax ?: "",
-                todayForecast?.winddirection10mDominant ?: "",
-                todayForecast?.relativeHumidity ?: ""
+                todayForecast.temperature2mMin ?: "",
+                todayForecast.temperature2mMax ?: "",
+                todayForecast.weather ?: "",
+                todayForecast.pressure ?: "",
+                todayForecast.windspeed10mMax ?: "",
+                todayForecast.winddirection10mDominant ?: "",
+                todayForecast.relativeHumidity ?: ""
             )
         }
         binding.weekForecastButton.isEnabled =
-            (viewModel.weekForecast.value?.isNotEmpty() == true)
+            (viewModel.weekForecast.isNotEmpty())
     }
 }

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Weather Forecast</string>
     <string name="main_fragment_navbar">Weather forecast</string>
-    <string name="city_input_hint">Enter name</string>
+    <string name="city_input_hint">Enter location name</string>
     <string name="week_forecast_nav_bar">Week forecast</string>
     <string name="city_search_nav_bar">Location search</string>
     <string name="current_city_rb">Current location</string>
@@ -60,4 +60,5 @@
     <string name="location_permission_rationale_message">Please grant this app coarse location permission so it can detect current location to show relevant weather forecast. You still can use the app without granting location permission, choosing \"%1$s\" and entering location name</string>
     <string name="location_permission_rationale_pos_button">Grant</string>
     <string name="location_permission_rationale_neg_button">Cancel</string>
+    <string name="enter_city_snackbar">Please, enter location name</string>
 </resources>

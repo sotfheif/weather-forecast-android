@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     tools:context=".ui.main.MainFragment">
 
+    <!--
     <RadioGroup
         android:id="@+id/radioGroup"
         android:checkedButton="@+id/rb_current_city"
@@ -24,6 +25,7 @@
         android:layout_height="match_parent"
         android:text="@string/other_city_rb"/>
     </RadioGroup>
+    -->
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textField"
@@ -31,26 +33,34 @@
         android:layout_height="wrap_content"
         android:hint="@string/city_input_hint"
         app:errorEnabled="true"
-        app:layout_constraintTop_toBottomOf="@id/radioGroup">
+        app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/textFieldInput"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            />
+            android:layout_height="wrap_content" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
         style="?attr/materialButtonOutlinedStyle"
-        android:id="@+id/selectCityButton"
+        android:id="@+id/select_city_button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/select_city_button"
         app:layout_constraintTop_toBottomOf="@id/textField"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        />
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        style="?attr/materialButtonOutlinedStyle"
+        android:id="@+id/rb_current_city"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/selected_city_text_current_location"
+        app:layout_constraintTop_toBottomOf="@id/select_city_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
         android:id="@+id/selectedCityTextView"
@@ -58,7 +68,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/selectCityButton"
+        app:layout_constraintTop_toBottomOf="@id/rb_current_city"
         tools:text="Rome" />
 
     <Button
