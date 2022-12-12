@@ -15,7 +15,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 
 class CityFragment :
-    Fragment() { //TODO EXPAND CITY LIST ELEMENTS IN UI TO PARENT'S WIDTH, SO THAT CLICKING ON TRAILING WHITESPACE IN ELEMENT OF THE LIST COUNTS AS CLICKING THE ELEMENT
+    Fragment() {
     private var _binding: FragmentCityListBinding? = null
     private val binding get() = _binding!!
     private val viewModel: MainViewModel by activityViewModels()
