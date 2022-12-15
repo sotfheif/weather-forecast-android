@@ -1,7 +1,6 @@
 package com.example.weatherforecast.ui.main
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
@@ -26,18 +25,22 @@ import com.example.weatherforecast.databinding.FragmentMainBinding
 import com.example.weatherforecast.network.ForecastResponse
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.round
 import kotlin.math.roundToInt
 
 const val TAG = "MainFragment"
 class MainFragment : Fragment() {
+    //FIX memory leak
     //TODO where necessary prevent calling functions (like after clicking a button), when they are already running. or stop some functions after conflicting functions are called
     //TODO check setSpinnerVisibility placement
     //TODO download web services location db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
     //TODO in search field (before any chars entered) show previous location search queries(or selected results(locations)?
-
+    //TODO add offline/slow internet handling
     /*
     companion object {
         fun newInstance() = MainFragment()
@@ -48,7 +51,7 @@ class MainFragment : Fragment() {
     private lateinit var weatherCodeMap: Map<Int, String>
 
     enum class GetLocationByGpsErrors {
-        NO_ERROR, GPS_IS_OFF, LOC_DETECTION_FAILED
+        NO_ERROR, GPS_IS_OFF, LOC_DETECTION_FAILED, MISSING_PERMISSION
     }
 
     enum class TimeoutJobCancelReasons {
@@ -95,8 +98,8 @@ class MainFragment : Fragment() {
                 onShowForecastButtonClicked()
             }
         }
-        binding.rbCurrentCity.setOnClickListener { //TODO change this to button, remove rbselectcity
-            Log.d(TAG, "rbCurrentCity onclicklistener")
+        binding.currentLocationButton.setOnClickListener {
+            Log.d(TAG, "CurrentLocationButton onclicklistener")
             if (viewModel.selectedCity == viewModel.emptyCity) {
                 return@setOnClickListener
             }
@@ -163,8 +166,9 @@ class MainFragment : Fragment() {
                     }
                     job.join()
                     if (foundAnyCities) {
-                        val action = MainFragmentDirections.actionMainFragmentToCityFragment()
-                        this@MainFragment.findNavController().navigate(action)
+                        this@MainFragment.findNavController().navigate(
+                            MainFragmentDirections.actionMainFragmentToCityFragment()
+                        )
                     } else {
                         showCityNotFoundDialog()
                     }
@@ -195,7 +199,8 @@ class MainFragment : Fragment() {
         /*viewModel.getForecastResult.observe(this.viewLifecycleOwner) {
             setForecast(it)
         }*/
-        weatherCodeMap = mapOf(
+
+        weatherCodeMap = mapOf(/*mb do something with this*/
             0 to getString(R.string.wc0),
             1 to getString(R.string.wc1),
             2 to getString(R.string.wc2),
@@ -443,15 +448,25 @@ class MainFragment : Fragment() {
         return weekForecast
     }
 
-    @SuppressLint("MissingPermission")
+    //@SuppressLint("MissingPermission")
     suspend fun tryGetCurrentLocForecast() {//TODO add permission exception handling
         lateinit var location: Location
         val locationManager: LocationManager = context
             ?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val lastKnownLocationByGps =
-            locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-        val lastKnownLocationByNetwork =
-            locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        var lastKnownLocationByGps: Location? = null
+        var lastKnownLocationByNetwork: Location? = null
+        try {
+            lastKnownLocationByGps =
+                locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            lastKnownLocationByNetwork =
+                locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        } catch (e: SecurityException) {
+            Log.d(TAG, "Security exception: ${e}")
+            showGeoPermissionRequiredDialog()
+            return
+        } catch (e: Exception) {
+            Log.d(TAG, "Unexpected exception: ${e})")
+        }
         //getting latest known location (from gps or network)
         val latestKnownLoc =
             chooseLatestLocation(lastKnownLocationByGps, lastKnownLocationByNetwork)
@@ -481,6 +496,11 @@ class MainFragment : Fragment() {
                         showUnexpectedMistake(); return //TODO change showUnexpectedMistake showFailedToDetectGeo in release
                     }
                 }
+                GetLocationByGpsErrors.MISSING_PERMISSION -> {
+                    Log.d("MainFragment", "error=$error")
+                    showGeoPermissionRequiredDialog();
+                    return
+                }
             }
             location = newLocation
         }
@@ -500,7 +520,7 @@ class MainFragment : Fragment() {
         } else latestKnownLocation2
     }
 
-    @SuppressLint("MissingPermission")
+    //@SuppressLint("MissingPermission")
     suspend fun getLocationByGps(locationManager: LocationManager): Pair<Location?, GetLocationByGpsErrors> {
         //TODO add permission exception handling (mb just in parent func)
         Log.d("MainFragment", "entered getLocationByGps")
@@ -510,7 +530,7 @@ class MainFragment : Fragment() {
         var timeOutJob: Job? = null
 
         //TODO mb move gpsLocationListener inside "if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))"
-        val gpsLocationListener: LocationListener =
+        val gpsLocationListener: LocationListener = /* mb memory leak*/
             object : LocationListener {
                 override fun onLocationChanged(newLocation: Location) {
                     locationManager.removeUpdates(this)
@@ -554,12 +574,19 @@ class MainFragment : Fragment() {
                 .isProviderEnabled(LocationManager.GPS_PROVIDER)
         ) {
             Log.d("MainFragment", "string before requesting loc updates, error=$error")
-            locationManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                Constants.REQUEST_LOCATION_UPDATES_MIN_TIME_MS,
-                Constants.REQUEST_LOCATION_UPDATES_MIN_DISTANCE_M,
-                gpsLocationListener
-            )
+            try {
+                locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    Constants.REQUEST_LOCATION_UPDATES_MIN_TIME_MS,
+                    Constants.REQUEST_LOCATION_UPDATES_MIN_DISTANCE_M,
+                    gpsLocationListener
+                )
+            } catch (e: SecurityException) {
+                Log.d(TAG, "Security exception: ${e}")
+                return Pair(null, GetLocationByGpsErrors.MISSING_PERMISSION)
+            } catch (e: Exception) {
+                Log.d(TAG, "Unexpected exception: ${e})")
+            }
             Log.d("MainFragment", "string before launching waiter, error=$error")
             timeOutJob =
                 viewLifecycleOwner.lifecycleScope.launch {//TODO mb change to out of the box withTimeout()

@@ -54,7 +54,7 @@
 
     <Button
         style="?attr/materialButtonOutlinedStyle"
-        android:id="@+id/rb_current_city"
+        android:id="@+id/current_location_button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/selected_city_text_current_location"
@@ -68,7 +68,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/rb_current_city"
+        app:layout_constraintTop_toBottomOf="@id/current_location_button"
         tools:text="Rome" />
 
     <Button
