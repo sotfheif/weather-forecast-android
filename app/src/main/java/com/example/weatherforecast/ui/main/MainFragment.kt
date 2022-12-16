@@ -35,9 +35,9 @@ import kotlin.math.roundToInt
 
 const val TAG = "MainFragment"
 class MainFragment : Fragment() {
-    //FIX memory leak
+    //TODO bug sometimes forecast won't appear in ui. like when internet speed is low, you first press show forecast, but deny the perm, then enter and select some city and press showforecast after clicking show forecst once more it appears
     //TODO where necessary prevent calling functions (like after clicking a button), when they are already running. or stop some functions after conflicting functions are called
-    //TODO check setSpinnerVisibility placement
+    //TODO check setSpinnerVisibility placement. sometimes mainfragment showforecast spinner won't dissapear (when rotating device during loading
     //TODO download web services location db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
     //TODO in search field (before any chars entered) show previous location search queries(or selected results(locations)?
     //TODO add offline/slow internet handling
@@ -451,8 +451,9 @@ class MainFragment : Fragment() {
     //@SuppressLint("MissingPermission")
     suspend fun tryGetCurrentLocForecast() {//TODO add permission exception handling
         lateinit var location: Location
-        val locationManager: LocationManager = context
-            ?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val locationManager: LocationManager = /*context /*was leaking*/*/
+            activity?.applicationContext
+                ?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         var lastKnownLocationByGps: Location? = null
         var lastKnownLocationByNetwork: Location? = null
         try {
@@ -461,7 +462,7 @@ class MainFragment : Fragment() {
             lastKnownLocationByNetwork =
                 locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         } catch (e: SecurityException) {
-            Log.d(TAG, "Security exception: ${e}")
+            Log.d(TAG, "Security exception: $e")
             showGeoPermissionRequiredDialog()
             return
         } catch (e: Exception) {
@@ -498,7 +499,7 @@ class MainFragment : Fragment() {
                 }
                 GetLocationByGpsErrors.MISSING_PERMISSION -> {
                     Log.d("MainFragment", "error=$error")
-                    showGeoPermissionRequiredDialog();
+                    showGeoPermissionRequiredDialog()
                     return
                 }
             }
@@ -530,7 +531,7 @@ class MainFragment : Fragment() {
         var timeOutJob: Job? = null
 
         //TODO mb move gpsLocationListener inside "if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))"
-        val gpsLocationListener: LocationListener = /* mb memory leak*/
+        val gpsLocationListener: LocationListener =
             object : LocationListener {
                 override fun onLocationChanged(newLocation: Location) {
                     locationManager.removeUpdates(this)
@@ -582,7 +583,7 @@ class MainFragment : Fragment() {
                     gpsLocationListener
                 )
             } catch (e: SecurityException) {
-                Log.d(TAG, "Security exception: ${e}")
+                Log.d(TAG, "Security exception: $e")
                 return Pair(null, GetLocationByGpsErrors.MISSING_PERMISSION)
             } catch (e: Exception) {
                 Log.d(TAG, "Unexpected exception: ${e})")
