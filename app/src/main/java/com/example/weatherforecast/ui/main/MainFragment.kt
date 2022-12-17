@@ -6,6 +6,9 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -35,6 +38,7 @@ import kotlin.math.roundToInt
 
 const val TAG = "MainFragment"
 class MainFragment : Fragment() {
+    //TODO finish implementing connection timeout func
     //TODO bug sometimes forecast won't appear in ui. like when internet speed is low, you first press show forecast, but deny the perm, then enter and select some city and press showforecast after clicking show forecst once more it appears
     //TODO where necessary prevent calling functions (like after clicking a button), when they are already running. or stop some functions after conflicting functions are called
     //TODO check setSpinnerVisibility placement. sometimes mainfragment showforecast spinner won't dissapear (when rotating device during loading
@@ -156,7 +160,7 @@ class MainFragment : Fragment() {
                     Snackbar.LENGTH_SHORT
                 )
                     .show()
-            } else {
+            } else if (isNetworkAvailable(activity?.applicationContext)) {
                 var foundAnyCities = false
                 viewModel.resetForecastResult()
                 viewLifecycleOwner.lifecycleScope.launch {
@@ -173,7 +177,7 @@ class MainFragment : Fragment() {
                         showCityNotFoundDialog()
                     }
                 }
-            }
+            } else showNoInternetDialog()
         }
 
         binding.weekForecastButton.setOnClickListener {
@@ -353,6 +357,24 @@ class MainFragment : Fragment() {
             .setMessage(getString(R.string.unexpected_mistake_text))
             .setCancelable(true)
             .setNegativeButton(R.string.no_geo_dialog_button) { _, _ -> }
+            .show()
+    }
+
+    private fun showNoInternetDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.no_internet_dialog_title))
+            .setMessage(getString(R.string.no_internet_dialog_text))
+            .setCancelable(true)
+            .setNegativeButton(R.string.no_internet_dialog_button) { _, _ -> }
+            .show()
+    }
+
+    private fun showConnectionTimeoutDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.connection_timeout_dialog_title))
+            .setMessage(getString(R.string.connection_timeout_dialog_text))
+            .setCancelable(true)
+            .setNegativeButton(R.string.connection_timeout_dialog_button) { _, _ -> }
             .show()
     }
 
@@ -637,6 +659,7 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
     private suspend fun onShowForecastButtonClicked() {
         viewModel.setSpinnerVisibilityMainFragment(true)
+
         if (viewModel.selectedCity == viewModel.emptyCity) {
             checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
         } else /*MainViewModel.LocSetOptions.SELECT*/ {
@@ -695,5 +718,34 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         }
         binding.weekForecastButton.isEnabled =
             (viewModel.weekForecast.isNotEmpty())
+    }
+
+    fun isNetworkAvailable(context: Context?): Boolean { //returns true if connected to wifi without internet
+        if (context == null) return false
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            if (capabilities != null) {
+                when {
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+                        return true
+                    }
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
+                        return true
+                    }
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> {
+                        return true
+                    }
+                }
+            }
+        } else {
+            val activeNetworkInfo = connectivityManager.activeNetworkInfo
+            if (activeNetworkInfo != null && activeNetworkInfo.isConnected) {
+                return true
+            }
+        }
+        return false
     }
 }

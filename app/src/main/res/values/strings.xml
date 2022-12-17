@@ -12,6 +12,12 @@
     <string name="no_geo_dialog_title">Please turn on geolocation to detect current location</string>
     <string name="no_geo_dialog_text">Please turn on geolocation to detect current location</string>
     <string name="no_geo_dialog_button">Close</string>
+    <string name="no_internet_dialog_title">Connection error</string>
+    <string name="no_internet_dialog_text">Please make sure you\'re connected to internet</string>
+    <string name="no_internet_dialog_button">Close</string>
+    <string name="connection_timeout_dialog_title">Connection error</string>
+    <string name="connection_timeout_dialog_text">Connection timeout, please check your internet connection speed</string>
+    <string name="connection_timeout_dialog_button">Close</string>
     <string name="failed_to_detect_geo_dialog_title">Geolocation error</string>
     <string name="failed_to_detect_geo_dialog_text">Couldn\'t detect location. Please make sure geolocation is on and try again</string>
     <string name="failed_to_detect_geo_dialog_button">Close</string>

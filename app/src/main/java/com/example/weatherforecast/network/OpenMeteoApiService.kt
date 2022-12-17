@@ -2,11 +2,13 @@ package com.example.weatherforecast.network
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
-import retrofit2.http.Url
+import java.util.concurrent.TimeUnit
+
 
 private const val BASE_URL_FORECAST =
     "https://api.open-meteo.com"
@@ -18,16 +20,22 @@ private val moshi = Moshi.Builder()
     .add(KotlinJsonAdapterFactory())
     .build()
 
+/* having them here didn't change things like connecttimeout, readtimeout, etc
 private val retrofitForecast = Retrofit.Builder()
     .addConverterFactory(MoshiConverterFactory.create(moshi))
     .baseUrl(BASE_URL_FORECAST)
     .build()
 
 private val retrofitCity = Retrofit.Builder()
-    .addConverterFactory(MoshiConverterFactory.create(moshi))
     .baseUrl(BASE_URL_CITY)
+    .client(OkHttpClient.Builder()
+        .connectTimeout(1, TimeUnit.SECONDS)
+        .readTimeout(1, TimeUnit.SECONDS)
+        .writeTimeout(1, TimeUnit.SECONDS)
+        .build())
+    .addConverterFactory(MoshiConverterFactory.create(moshi))
     .build()
-
+*/
 
 interface OpenMeteoApiService {
     @GET("v1/forecast")
@@ -48,9 +56,28 @@ interface OpenMeteoApiService {
     ): CityResponse
 }
 
-object OpenMeteoApi{
+object OpenMeteoApi {
+
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(1, TimeUnit.SECONDS)
+        .readTimeout(1, TimeUnit.SECONDS)
+        .writeTimeout(1, TimeUnit.SECONDS)
+        .build()
+
     val retrofitForecastService: OpenMeteoApiService by lazy {
-        retrofitForecast.create(OpenMeteoApiService::class.java) }
+        Retrofit.Builder()
+            .baseUrl(BASE_URL_FORECAST)
+            .client(client)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(OpenMeteoApiService::class.java)
+    }
     val retrofitCityService: OpenMeteoApiService by lazy {
-        retrofitCity.create(OpenMeteoApiService::class.java) }
+        Retrofit.Builder()
+            .baseUrl(BASE_URL_CITY)
+            .client(client)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(OpenMeteoApiService::class.java)
+    }
 }

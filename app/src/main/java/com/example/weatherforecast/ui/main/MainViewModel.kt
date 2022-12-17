@@ -73,19 +73,22 @@ class MainViewModel : ViewModel() {
     }
 
     suspend fun getCitiesByName(query: String): Boolean {
+        Log.d(TAG, "entered getcitiesbyname")
         var listResult = CityResponse()
         val getCitiesJob = viewModelScope.launch {
             _citySearchResult = listOf()
             setSpinnerVisibilityCityFragment(true)
             try {
                 listResult = OpenMeteoApi.retrofitCityService.getCityResponse(name = query)
-            } catch (d: Exception) {
-                Log.d("getCitiesByName", d.toString())
+            } catch (e: Exception) {
+                Log.d("getCitiesByName", e.toString())
+
             } finally {
                 setSpinnerVisibilityCityFragment(false)
             }
         }
         getCitiesJob.join()
+        Log.d(TAG, "getcitiesbyname before return")
         return if (listResult.results.isNotEmpty()) {
             _citySearchResult = listResult.results
             true
