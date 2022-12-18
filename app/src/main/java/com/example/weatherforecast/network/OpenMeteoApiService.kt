@@ -1,5 +1,6 @@
 package com.example.weatherforecast.network
 
+import com.example.weatherforecast.Constants
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
@@ -58,16 +59,29 @@ interface OpenMeteoApiService {
 
 object OpenMeteoApi {
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(1, TimeUnit.SECONDS)
-        .readTimeout(1, TimeUnit.SECONDS)
-        .writeTimeout(1, TimeUnit.SECONDS)
+    private val forecastClient = OkHttpClient.Builder()
+        /*
+        .connectTimeout()
+        .readTimeout()
+        .writeTimeout()
+        */
+        .callTimeout(Constants.FORECAST_CLIENT_CALL_TIMEOUT_MS, TimeUnit.MILLISECONDS)
         .build()
+
+    private val cityClient = OkHttpClient.Builder()
+        /*
+        .connectTimeout()
+        .readTimeout()
+        .writeTimeout()
+        */
+        .callTimeout(Constants.CITY_CLIENT_CALL_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        .build()
+
 
     val retrofitForecastService: OpenMeteoApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL_FORECAST)
-            .client(client)
+            .client(forecastClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(OpenMeteoApiService::class.java)
@@ -75,7 +89,7 @@ object OpenMeteoApi {
     val retrofitCityService: OpenMeteoApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL_CITY)
-            .client(client)
+            .client(cityClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(OpenMeteoApiService::class.java)

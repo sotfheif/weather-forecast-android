@@ -36,15 +36,15 @@ import java.util.*
 import kotlin.math.round
 import kotlin.math.roundToInt
 
-const val TAG = "MainFragment"
+private const val TAG = "MainFragment"
 class MainFragment : Fragment() {
-    //TODO finish implementing connection timeout func
+    //TODO test connection unavailable
     //TODO bug sometimes forecast won't appear in ui. like when internet speed is low, you first press show forecast, but deny the perm, then enter and select some city and press showforecast after clicking show forecst once more it appears
     //TODO where necessary prevent calling functions (like after clicking a button), when they are already running. or stop some functions after conflicting functions are called
     //TODO check setSpinnerVisibility placement. sometimes mainfragment showforecast spinner won't dissapear (when rotating device during loading
-    //TODO download web services location db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
-    //TODO in search field (before any chars entered) show previous location search queries(or selected results(locations)?
-    //TODO add offline/slow internet handling
+    //TODO later review architecture
+    //TODO later download web service's location db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
+    //TODO later in search field (before any chars entered) show previous location search queries(or selected results(locations)?
     /*
     companion object {
         fun newInstance() = MainFragment()
@@ -71,11 +71,15 @@ class MainFragment : Fragment() {
             ) { isGranted: Boolean ->
                 if (isGranted) {
                     viewLifecycleOwner.lifecycleScope.launch {
-                        tryGetCurrentLocForecast()  //TODO maybe better move this call somewhere else
-                        //mb unite next 3 lines into a sep fun
-                        setForecast(viewModel.getForecastResult)
+                        if (!isNetworkAvailable(activity?.applicationContext)) {
+                            showNoInternetDialog()
+                        } else {
+                            tryGetCurrentLocForecast()  //TODO maybe better move this call somewhere else
+                            //mb unite next 3 lines into a sep fun
+                            setForecast(viewModel.getForecastResult)
+                            showDayForecast()
+                        }
                         viewModel.setSpinnerVisibilityMainFragment(false)
-                        showDayForecast()
                     }
                 } else {
                     viewModel.setSpinnerVisibilityMainFragment(false)
@@ -161,7 +165,7 @@ class MainFragment : Fragment() {
                 )
                     .show()
             } else if (isNetworkAvailable(activity?.applicationContext)) {
-                var foundAnyCities = false
+                var foundAnyCities = Pair(false, Constants.emptyException)
                 viewModel.resetForecastResult()
                 viewLifecycleOwner.lifecycleScope.launch {
                     val job = viewLifecycleOwner.lifecycleScope.launch {
@@ -169,10 +173,12 @@ class MainFragment : Fragment() {
                             viewModel.getCitiesByName(binding.textFieldInput.text.toString())
                     }
                     job.join()
-                    if (foundAnyCities) {
+                    if (foundAnyCities.first) {
                         this@MainFragment.findNavController().navigate(
                             MainFragmentDirections.actionMainFragmentToCityFragment()
                         )
+                    } else if (foundAnyCities.second !== Constants.emptyException) {
+                        showConnectionTimeoutDialog()
                     } else {
                         showCityNotFoundDialog()
                     }
@@ -422,10 +428,10 @@ class MainFragment : Fragment() {
         }
     }
 
-    private suspend fun setLocationGetForecast(location: Location) {
+    private suspend fun setLocationGetForecast(location: Location): String {
         viewModel.setLocation(location)
         viewModel.currentLocation.let {
-            viewModel.getForecastByCoords(it.latitude, it.longitude)
+            return viewModel.getForecastByCoords(it.latitude, it.longitude)
         }
     }
 
@@ -527,7 +533,11 @@ class MainFragment : Fragment() {
             }
             location = newLocation
         }
-        setLocationGetForecast(location)
+        val exception = setLocationGetForecast(location)
+        if (exception != Constants.emptyException) {
+            Log.d(TAG, exception)
+            showConnectionTimeoutDialog()
+        }
         //viewModel.setSpinnerVisibilityMainFragment(false)
     }
 
@@ -659,33 +669,41 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
     private suspend fun onShowForecastButtonClicked() {
         viewModel.setSpinnerVisibilityMainFragment(true)
-
-        if (viewModel.selectedCity == viewModel.emptyCity) {
-            checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
-        } else /*MainViewModel.LocSetOptions.SELECT*/ {
-            if (viewModel.selectedCity.name == null) {
-                Snackbar.make(
-                    binding.showForecastButton,
-                    getString(R.string.select_city_snackbar),
-                    Snackbar.LENGTH_SHORT
-                )
-                    .show()
-            } else {
-                viewModel.selectedCity.let {
-                    if (it.latitude != null && it.longitude != null) {
-                        viewModel.getForecastByCoords(it.latitude, it.longitude)
-                        setForecast(viewModel.getForecastResult)
-                        showDayForecast()
+        if (!isNetworkAvailable(activity?.applicationContext)) {
+            showNoInternetDialog()
+            viewModel.setSpinnerVisibilityMainFragment(false)
+        } else {
+            if (viewModel.selectedCity == viewModel.emptyCity) {
+                checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
+            } else /*MainViewModel.LocSetOptions.SELECT*/ {
+                if (viewModel.selectedCity.name == null) {
+                    Snackbar.make(
+                        binding.showForecastButton,
+                        getString(R.string.select_city_snackbar),
+                        Snackbar.LENGTH_SHORT
+                    )
+                        .show()
+                } else {
+                    viewModel.selectedCity.let {
+                        if (it.latitude != null && it.longitude != null) {
+                            val exception = viewModel.getForecastByCoords(it.latitude, it.longitude)
+                            if (exception != Constants.emptyException) {
+                                showConnectionTimeoutDialog()
+                            } else {
+                                setForecast(viewModel.getForecastResult)
+                                showDayForecast()
+                            }
+                        }
                     }
                 }
+                viewModel.setSpinnerVisibilityMainFragment(false)
             }
-            viewModel.setSpinnerVisibilityMainFragment(false)
-        }
-        /* moving to both when branches, cause had to somehow wait for activitylauncher,
+            /* moving to both when branches, cause had to somehow wait for activitylauncher,
         mb should move to distinct function and pass it as lambda in higher order fun or just call it or smth
         setForecast(viewModel.getForecastResult.value)
         showDayForecast()
         viewModel.setSpinnerVisibilityMainFragment(false)*/
+        }
     }
 
     private fun setForecast(forecastResult: ForecastResponse) {
@@ -740,7 +758,7 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
                     }
                 }
             }
-        } else {
+        } else @Suppress("DEPRECATION") {
             val activeNetworkInfo = connectivityManager.activeNetworkInfo
             if (activeNetworkInfo != null && activeNetworkInfo.isConnected) {
                 return true

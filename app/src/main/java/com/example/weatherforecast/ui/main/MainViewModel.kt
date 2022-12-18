@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-
+private const val TAG = "MainViewModel"
 class MainViewModel : ViewModel() {
     lateinit var requestLocPermissionLauncher: ActivityResultLauncher<String>
 
@@ -72,9 +72,10 @@ class MainViewModel : ViewModel() {
         longitude = _currentLocation.longitude
     }
 
-    suspend fun getCitiesByName(query: String): Boolean {
+    suspend fun getCitiesByName(query: String): Pair<Boolean, String> {
         Log.d(TAG, "entered getcitiesbyname")
         var listResult = CityResponse()
+        var exception: String = Constants.emptyException
         val getCitiesJob = viewModelScope.launch {
             _citySearchResult = listOf()
             setSpinnerVisibilityCityFragment(true)
@@ -82,7 +83,7 @@ class MainViewModel : ViewModel() {
                 listResult = OpenMeteoApi.retrofitCityService.getCityResponse(name = query)
             } catch (e: Exception) {
                 Log.d("getCitiesByName", e.toString())
-
+                exception = e.toString()
             } finally {
                 setSpinnerVisibilityCityFragment(false)
             }
@@ -91,20 +92,21 @@ class MainViewModel : ViewModel() {
         Log.d(TAG, "getcitiesbyname before return")
         return if (listResult.results.isNotEmpty()) {
             _citySearchResult = listResult.results
-            true
+            Pair(true, exception)
         } else {
-            false
+            Pair(false, exception)
         }
     }
 
     @SuppressLint("SimpleDateFormat")
-    suspend fun getForecastByCoords(cityLatitude: Double, cityLongitude: Double) {
+    suspend fun getForecastByCoords(cityLatitude: Double, cityLongitude: Double): String {
+        var exception = Constants.emptyException
         viewModelScope.launch {
             val currentDate: String = SimpleDateFormat("yyyy-MM-dd").format(Date())
             val weekLaterDate: String = SimpleDateFormat("yyyy-MM-dd").format(
                 Calendar.getInstance().timeInMillis + Constants.WEEK_IN_MILLIS
             )
-
+            Log.d("viewModel", "before getforecastresponse")
             try {
                 val listResult = OpenMeteoApi.retrofitForecastService
                     .getForecastResponse(
@@ -117,11 +119,15 @@ class MainViewModel : ViewModel() {
                         daily = daily
                     )
                 _getForecastResult = listResult
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                Log.d("getforecastresp", e.toString())
+                exception = e.toString()
             } finally {
                 //setSpinnerVisibilityMainFragment(false)
             }
         }.join()
+        Log.d("viewModel", "after getforecastresponse")
+        return exception
     }
 
     fun prepCityForUi(city: City): String {

@@ -11,4 +11,16 @@ object Constants {
     const val REQUEST_LOCATION_UPDATES_MIN_TIME_MS: Long = 500
     const val REQUEST_LOCATION_UPDATES_MIN_DISTANCE_M: Float = 0F
 
+    /*
+    const val CITY_CLIENT_CONNECT_TIMEOUT_MS: Long = 8_000L
+    const val CITY_CLIENT_READ_TIMEOUT_MS: Long = 8_000L
+     */
+    const val CITY_CLIENT_CALL_TIMEOUT_MS: Long = 15_000L
+
+    /*
+    const val FORECAST_CLIENT_CONNECT_TIMEOUT_MS: Long = 8_000L
+    const val FORECAST_CLIENT_READ_TIMEOUT_MS: Long = 6_000L
+    */
+    const val FORECAST_CLIENT_CALL_TIMEOUT_MS: Long = 12_000L
+    const val emptyException: String = "no exception"
 }
