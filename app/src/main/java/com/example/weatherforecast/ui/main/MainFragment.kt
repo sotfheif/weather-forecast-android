@@ -3,9 +3,6 @@ package com.example.weatherforecast.ui.main
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -21,23 +18,19 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.example.weatherforecast.Constants
 import com.example.weatherforecast.R
 import com.example.weatherforecast.data.DayForecast
 import com.example.weatherforecast.databinding.FragmentMainBinding
-import com.example.weatherforecast.network.ForecastResponse
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.*
-import kotlin.math.round
-import kotlin.math.roundToInt
 
 private const val TAG = "MainFragment"
 class MainFragment : Fragment() {
+
+    //TODO show error dialogs in UI, observing appuistate (or appstate) livedata from viewmodel
+    //TODO update todayforecast in ui, observing livedata from viewmodel
     //TODO test connection unavailable
     //TODO bug sometimes forecast won't appear in ui. like when internet speed is low, you first press show forecast, but deny the perm, then enter and select some city and press showforecast after clicking show forecst once more it appears
     //TODO where necessary prevent calling functions (like after clicking a button), when they are already running. or stop some functions after conflicting functions are called
@@ -50,17 +43,10 @@ class MainFragment : Fragment() {
         fun newInstance() = MainFragment()
     }
     */
-    private val viewModel: MainViewModel by activityViewModels()
+    private val viewModel: MainViewModel by activityViewModels() //or another way?
     private lateinit var binding: FragmentMainBinding
     private lateinit var weatherCodeMap: Map<Int, String>
 
-    enum class GetLocationByGpsErrors {
-        NO_ERROR, GPS_IS_OFF, LOC_DETECTION_FAILED, MISSING_PERMISSION
-    }
-
-    enum class TimeoutJobCancelReasons {
-        NOT_CANCELLED, ON_LOC_CHANGED, ON_PROVIDER_DISABLED
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,18 +58,16 @@ class MainFragment : Fragment() {
                 if (isGranted) {
                     viewLifecycleOwner.lifecycleScope.launch {
                         if (!isNetworkAvailable(activity?.applicationContext)) {
-                            showNoInternetDialog()
+                            viewModel.setAppUiState(MainViewModel.AppUiStates.NO_INTERNET)//showNoInternetDialog()
                         } else {
-                            tryGetCurrentLocForecast()  //TODO maybe better move this call somewhere else
-                            //mb unite next 3 lines into a sep fun
-                            setForecast(viewModel.getForecastResult)
-                            showDayForecast()
+                            viewModel.tryGetSetCurrentLocForecast()  //TODO maybe better move this call somewhere else
+                            //prepDayForecastUiText()
                         }
-                        viewModel.setSpinnerVisibilityMainFragment(false)
+                        //viewModel.setSpinnerVisibilityMainFragment(false)
                     }
                 } else {
-                    viewModel.setSpinnerVisibilityMainFragment(false)
-                    showGeoPermissionRequiredDialog()
+                    //viewModel.setSpinnerVisibilityMainFragment(false)
+                    viewModel.setAppUiState(MainViewModel.AppUiStates.GEO_PERM_REQUIRED)//showGeoPermissionRequiredDialog()
                 }
             }
     }
@@ -102,9 +86,9 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "onViewCreated")
         binding.showForecastButton.setOnClickListener {
-            viewLifecycleOwner.lifecycleScope.launch {
+            //viewLifecycleOwner.lifecycleScope.launch {
                 onShowForecastButtonClicked()
-            }
+            //}
         }
         binding.currentLocationButton.setOnClickListener {
             Log.d(TAG, "CurrentLocationButton onclicklistener")
@@ -165,24 +149,7 @@ class MainFragment : Fragment() {
                 )
                     .show()
             } else if (isNetworkAvailable(activity?.applicationContext)) {
-                var foundAnyCities = Pair(false, Constants.emptyException)
-                viewModel.resetForecastResult()
-                viewLifecycleOwner.lifecycleScope.launch {
-                    val job = viewLifecycleOwner.lifecycleScope.launch {
-                        foundAnyCities =
-                            viewModel.getCitiesByName(binding.textFieldInput.text.toString())
-                    }
-                    job.join()
-                    if (foundAnyCities.first) {
-                        this@MainFragment.findNavController().navigate(
-                            MainFragmentDirections.actionMainFragmentToCityFragment()
-                        )
-                    } else if (foundAnyCities.second !== Constants.emptyException) {
-                        showConnectionTimeoutDialog()
-                    } else {
-                        showCityNotFoundDialog()
-                    }
-                }
+                viewModel.findCity(binding.textFieldInput.text.toString())
             } else showNoInternetDialog()
         }
 
@@ -205,10 +172,35 @@ class MainFragment : Fragment() {
             }
         }*/
 
+        viewModel.appUiState.observe(this.viewLifecycleOwner) {
+            when (it) {
+                MainViewModel.AppUiStates.NORMAL -> {}
+                MainViewModel.AppUiStates.GEO_PERM_REQUIRED -> showGeoPermissionRequiredDialog()
+                MainViewModel.AppUiStates.GEO_DETECT_FAILED -> showFailedToDetectGeoDialog()
+                MainViewModel.AppUiStates.GEO_PERM_RATIONALE -> showGeoPermissionRationaleDialog(
+                    viewModel.requestLocPermissionLauncher
+                )
+                MainViewModel.AppUiStates.NO_GEO -> showNoGeoDialog()
+                MainViewModel.AppUiStates.NO_INTERNET -> showNoInternetDialog()
+                MainViewModel.AppUiStates.CONNECTION_TIMEOUT -> showConnectionTimeoutDialog()
+                MainViewModel.AppUiStates.UNEXPECTED_MISTAKE -> showUnexpectedMistake()
+                MainViewModel.AppUiStates.WAITING_GEO -> {}
+                MainViewModel.AppUiStates.WAITING_CITY_SEARCH -> {}
+                MainViewModel.AppUiStates.WAITING_FORECAST_RESPONSE -> {}
+                MainViewModel.AppUiStates.CITY_NOT_FOUND -> showCityNotFoundDialog()
+                MainViewModel.AppUiStates.GO_TO_CITY_FRAGMENT -> this@MainFragment
+                    .findNavController().navigate(
+                        MainFragmentDirections.actionMainFragmentToCityFragment()
+                    )
+                MainViewModel.AppUiStates.LAT_OR_LONG_NULL -> showLatOrLongNullDialog()
+            }
+        }
 
-        /*viewModel.getForecastResult.observe(this.viewLifecycleOwner) {
-            setForecast(it)
-        }*/
+        viewModel.weekForecastUi.observe(this.viewLifecycleOwner) {
+            binding.todayForecastTextView.text = prepDayForecastUiText(it[0])
+            binding.weekForecastButton.isEnabled =
+                (viewModel.weekForecastUi.value?.isNotEmpty() == true)
+        }
 
         weatherCodeMap = mapOf(/*mb do something with this*/
             0 to getString(R.string.wc0),
@@ -311,12 +303,11 @@ class MainFragment : Fragment() {
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         Log.d(TAG, "onViewStateRestored")
-        showDayForecast()
+        //prepDayForecastUiText()
         viewModel.selectedCity.let {
             binding.selectedCityTextView.text = if (it == viewModel.emptyCity)
-                getString(R.string.selected_city_text_current_location) else viewModel.prepCityForUi(
-                it
-            )
+                getString(R.string.selected_city_text_current_location)
+            else viewModel.prepCityForUi(it)
         }
     }
 
@@ -327,6 +318,7 @@ class MainFragment : Fragment() {
             .setMessage(getString(R.string.no_geo_dialog_text))
             .setCancelable(true)
             .setNegativeButton(R.string.no_geo_dialog_button) { _, _ -> }
+            .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
     }
 
@@ -336,6 +328,7 @@ class MainFragment : Fragment() {
             .setMessage(getString(R.string.failed_to_detect_geo_dialog_text))
             .setCancelable(true)
             .setNegativeButton(R.string.failed_to_detect_geo_dialog_button) { _, _ -> }
+            .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
     }
 
@@ -345,6 +338,7 @@ class MainFragment : Fragment() {
             .setMessage(getString(R.string.no_geo_permission_dialog_text))
             .setCancelable(true)
             .setNegativeButton(R.string.no_geo_permission_dialog_button) { _, _ -> }
+            .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
     }
 
@@ -354,6 +348,7 @@ class MainFragment : Fragment() {
             .setMessage(getString(R.string.city_not_found_dialog_text))
             .setCancelable(true)
             .setNegativeButton(R.string.no_geo_dialog_button) { _, _ -> }
+            .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
     }
 
@@ -363,6 +358,7 @@ class MainFragment : Fragment() {
             .setMessage(getString(R.string.unexpected_mistake_text))
             .setCancelable(true)
             .setNegativeButton(R.string.no_geo_dialog_button) { _, _ -> }
+            .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
     }
 
@@ -372,6 +368,7 @@ class MainFragment : Fragment() {
             .setMessage(getString(R.string.no_internet_dialog_text))
             .setCancelable(true)
             .setNegativeButton(R.string.no_internet_dialog_button) { _, _ -> }
+            .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
     }
 
@@ -381,6 +378,17 @@ class MainFragment : Fragment() {
             .setMessage(getString(R.string.connection_timeout_dialog_text))
             .setCancelable(true)
             .setNegativeButton(R.string.connection_timeout_dialog_button) { _, _ -> }
+            .setOnDismissListener { viewModel.setNormalAppUiState() }
+            .show()
+    }
+
+    private fun showLatOrLongNullDialog() { //TODO remove/replace in release build. DEBUG FEATURE
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Latitude or longitude null")
+            .setMessage("After getting location latitude or longitude appear to be null")
+            .setCancelable(true)
+            .setNegativeButton("Close") { _, _ -> }
+            .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
     }
 
@@ -402,23 +410,23 @@ class MainFragment : Fragment() {
             .setNegativeButton(R.string.location_permission_rationale_neg_button) { _, _ ->
                 viewModel.setSpinnerVisibilityMainFragment(false)
             }
+            .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
     }
 
-    private suspend fun checkPermDetectLoc(activityResultLauncher: ActivityResultLauncher<String>) {
+    private fun checkPermDetectLoc(activityResultLauncher: ActivityResultLauncher<String>) {
         when {
             ContextCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED -> {
-                tryGetCurrentLocForecast()
-                setForecast(viewModel.getForecastResult)
-                showDayForecast()
-                viewModel.setSpinnerVisibilityMainFragment(false)
+                viewModel.tryGetSetCurrentLocForecast()
+                //prepDayForecastUiText()
+                //viewModel.setSpinnerVisibilityMainFragment(false)
             }
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
                 //viewModel.setSpinnerVisibilityMainFragment(false)
-                showGeoPermissionRationaleDialog(activityResultLauncher)
+                viewModel.setAppUiState(MainViewModel.AppUiStates.GEO_PERM_RATIONALE) //showGeoPermissionRationaleDialog(activityResultLauncher)
             }
             else -> {
                 activityResultLauncher.launch(
@@ -427,14 +435,7 @@ class MainFragment : Fragment() {
             }
         }
     }
-
-    private suspend fun setLocationGetForecast(location: Location): String {
-        viewModel.setLocation(location)
-        viewModel.currentLocation.let {
-            return viewModel.getForecastByCoords(it.latitude, it.longitude)
-        }
-    }
-
+/*
     private fun handleForecastResponse(forecastResponse: ForecastResponse):
             List<DayForecast> {
         if (forecastResponse.latitude == null) {
@@ -475,7 +476,9 @@ class MainFragment : Fragment() {
         }
         return weekForecast
     }
+*/
 
+    /*
     //@SuppressLint("MissingPermission")
     suspend fun tryGetCurrentLocForecast() {//TODO add permission exception handling
         lateinit var location: Location
@@ -540,7 +543,8 @@ class MainFragment : Fragment() {
         }
         //viewModel.setSpinnerVisibilityMainFragment(false)
     }
-
+    */
+/*
     private fun chooseLatestLocation(
         latestKnownLocation1: Location?,
         latestKnownLocation2: Location?
@@ -553,125 +557,13 @@ class MainFragment : Fragment() {
         } else latestKnownLocation2
     }
 
-    //@SuppressLint("MissingPermission")
-    suspend fun getLocationByGps(locationManager: LocationManager): Pair<Location?, GetLocationByGpsErrors> {
-        //TODO add permission exception handling (mb just in parent func)
-        Log.d("MainFragment", "entered getLocationByGps")
-        var error = GetLocationByGpsErrors.NO_ERROR
-        var timeoutJobCancelReason = TimeoutJobCancelReasons.NOT_CANCELLED // mb unnecessary
-        var location: Location? = null
-        var timeOutJob: Job? = null
+*/
 
-        //TODO mb move gpsLocationListener inside "if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))"
-        val gpsLocationListener: LocationListener =
-            object : LocationListener {
-                override fun onLocationChanged(newLocation: Location) {
-                    locationManager.removeUpdates(this)
-                    Log.d(
-                        "MainFragment",
-                        "entered onLocationChanged, error=$error, newLocation.time=${newLocation.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
-                    )
-                    Log.d(
-                        "MainFragment",
-                        "onlocationchanged, string before location assign. newLocation =$newLocation, location=$location, error=$error, newLocation.time=${newLocation.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
-                    )
-                    location = newLocation
-                    Log.d(
-                        "MainFragment",
-                        "onlocationchanged, string after location assign. newLocation =$newLocation, location=$location, error=$error, location.time=${location?.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
-                    )
-                    timeoutJobCancelReason = TimeoutJobCancelReasons.ON_LOC_CHANGED
-                    Log.d(
-                        "MainFragment",
-                        "onlocchanged, string before timeoutjob.cancel, timeOutJob=$timeOutJob"
-                    )
-                    timeOutJob?.cancel()
-                }
-
-                override fun onProviderDisabled(provider: String) {
-                    super.onProviderDisabled(provider)
-                    locationManager.removeUpdates(this)
-
-                    Log.d("MainFragment", "entered onproviderdisabled, error=$error")
-                    timeoutJobCancelReason = TimeoutJobCancelReasons.ON_PROVIDER_DISABLED
-                    Log.d(
-                        "MainFragment",
-                        "onproviderdisabled, string before timeoutjob.cancel, timeOutJob=$timeOutJob"
-                    )
-                    //error = GetLocationByGpsErrors.GPS_IS_OFF
-                    timeOutJob?.cancel()
-                    //showNoGeoDialog()
-                }
-            }
-        if (locationManager
-                .isProviderEnabled(LocationManager.GPS_PROVIDER)
-        ) {
-            Log.d("MainFragment", "string before requesting loc updates, error=$error")
-            try {
-                locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    Constants.REQUEST_LOCATION_UPDATES_MIN_TIME_MS,
-                    Constants.REQUEST_LOCATION_UPDATES_MIN_DISTANCE_M,
-                    gpsLocationListener
-                )
-            } catch (e: SecurityException) {
-                Log.d(TAG, "Security exception: $e")
-                return Pair(null, GetLocationByGpsErrors.MISSING_PERMISSION)
-            } catch (e: Exception) {
-                Log.d(TAG, "Unexpected exception: ${e})")
-            }
-            Log.d("MainFragment", "string before launching waiter, error=$error")
-            timeOutJob =
-                viewLifecycleOwner.lifecycleScope.launch {//TODO mb change to out of the box withTimeout()
-                    repeat(Constants.DETECT_GEO_TIMEOUT_CHECK_TIMES) {
-                        if (isActive) {
-                            delay(Constants.DETECT_GEO_TIMEOUT_CHECK_PERIOD_IN_MILLIS)
-                            Log.d("MainFragment", "string in waiter, iter $it, error=$error")
-                        } else {
-                            return@launch
-                        }
-                    }
-                    locationManager.removeUpdates(gpsLocationListener)
-                }
-            Log.d(
-                "MainFragment",
-                "string after launching waiter, before timeoutjob.join, error=$error"
-            )
-            timeOutJob.join()
-            Log.d("MainFragment", "string after timeoutjob.join, error=$error")
-            when (timeoutJobCancelReason) {
-                TimeoutJobCancelReasons.ON_LOC_CHANGED -> {
-                    Log.d("MainFragment", "entered timeoutJobCancelReasons.ON_LOC_CHANGED ->")
-                }
-                TimeoutJobCancelReasons.ON_PROVIDER_DISABLED -> {
-                    Log.d("MainFragment", "entered timeoutJobCancelReasons.ON_PROVIDER_DISABLED ->")
-                    error = GetLocationByGpsErrors.GPS_IS_OFF
-                }
-                TimeoutJobCancelReasons.NOT_CANCELLED -> {//reached timeout
-/* last try, get any, even old location. mb do this after function completes
-location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) ?:
-locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
- */
-                    Log.d(
-                        "MainFragment",
-                        "location=$location, string before when (abt location), error=$error)"
-                    )
-                    error = GetLocationByGpsErrors.LOC_DETECTION_FAILED
-                }
-            }
-        } else {
-            error = GetLocationByGpsErrors.GPS_IS_OFF
-//showNoGeoDialog()
-        }
-        Log.d("MainFragment", "getLocationByGps penultimate string, error=$error")
-        return Pair(location, error)
-    }
-
-    private suspend fun onShowForecastButtonClicked() {
-        viewModel.setSpinnerVisibilityMainFragment(true)
+    private fun onShowForecastButtonClicked() {
+        //viewModel.setSpinnerVisibilityMainFragment(true)
         if (!isNetworkAvailable(activity?.applicationContext)) {
-            showNoInternetDialog()
-            viewModel.setSpinnerVisibilityMainFragment(false)
+            viewModel.setAppUiState(MainViewModel.AppUiStates.NO_INTERNET)
+            //viewModel.setSpinnerVisibilityMainFragment(false)
         } else {
             if (viewModel.selectedCity == viewModel.emptyCity) {
                 checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
@@ -684,19 +576,9 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
                     )
                         .show()
                 } else {
-                    viewModel.selectedCity.let {
-                        if (it.latitude != null && it.longitude != null) {
-                            val exception = viewModel.getForecastByCoords(it.latitude, it.longitude)
-                            if (exception != Constants.emptyException) {
-                                showConnectionTimeoutDialog()
-                            } else {
-                                setForecast(viewModel.getForecastResult)
-                                showDayForecast()
-                            }
-                        }
-                    }
+                    viewModel.tryGetSelCityForecast()
                 }
-                viewModel.setSpinnerVisibilityMainFragment(false)
+                //viewModel.setSpinnerVisibilityMainFragment(false)
             }
             /* moving to both when branches, cause had to somehow wait for activitylauncher,
         mb should move to distinct function and pass it as lambda in higher order fun or just call it or smth
@@ -705,7 +587,7 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         viewModel.setSpinnerVisibilityMainFragment(false)*/
         }
     }
-
+/*
     private fun setForecast(forecastResult: ForecastResponse) {
         Log.d("MainFragment", "entered setForecast, forecastResult=$forecastResult")
         val weekForecast = handleForecastResponse(forecastResult)
@@ -717,25 +599,35 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
             viewModel.resetWeekForecast()
         }
     }
+    */
 
-    private fun showDayForecast() {
-        if (viewModel.weekForecast.isEmpty()) {
-            binding.todayForecastTextView.text = ""
+    private fun prepDayForecastUiText(dayForecast: DayForecast): String {
+        return if (viewModel.weekForecast.isEmpty()) {
+            ""
         } else {
-            val todayForecast = viewModel.weekForecast[0]
-            binding.todayForecastTextView.text = getString(
+            getString(
                 R.string.day_forecast,
-                todayForecast.temperature2mMin ?: "",
-                todayForecast.temperature2mMax ?: "",
-                todayForecast.weather ?: "",
-                todayForecast.pressure ?: "",
-                todayForecast.windspeed10mMax ?: "",
-                todayForecast.winddirection10mDominant ?: "",
-                todayForecast.relativeHumidity ?: ""
+                dayForecast.temperature2mMin?.plus(
+                    getString(R.string.temperature_unit)
+                ) ?: "",
+                dayForecast.temperature2mMax?.plus(
+                    getString(R.string.temperature_unit)
+                ) ?: "",
+                weatherCodeMap[dayForecast.weather?.toInt()] ?: "",
+                dayForecast.pressure?.plus(
+                    getString(R.string.pressure_unit)
+                ) ?: "",
+                dayForecast.windspeed10mMax?.plus(
+                    getString(R.string.wind_speed_unit)
+                ) ?: "",
+                dayForecast.winddirection10mDominant?.plus(
+                    getString(R.string.wind_direction_unit)
+                ) ?: "",
+                dayForecast.relativeHumidity?.plus(
+                    getString(R.string.relative_humidity_unit)
+                ) ?: ""
             )
         }
-        binding.weekForecastButton.isEnabled =
-            (viewModel.weekForecast.isNotEmpty())
     }
 
     fun isNetworkAvailable(context: Context?): Boolean { //returns true if connected to wifi without internet
