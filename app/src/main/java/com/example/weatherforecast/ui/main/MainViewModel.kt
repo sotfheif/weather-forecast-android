@@ -41,8 +41,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var _selectedCity: City = City()
     val selectedCity: City
         get() = _selectedCity
-    private var _weekForecast: List<DayForecast> = listOf()
-    val weekForecast: List<DayForecast>
+    private var _weekForecast =
+        MutableLiveData<List<DayForecast>>(listOf())//mb should create another livedata just for ui forecast
+    val weekForecast: LiveData<List<DayForecast>>
         get() = _weekForecast
     private var _citySearchResult = listOf<City>()
     val citySearchResult: List<City> get() = _citySearchResult
@@ -62,14 +63,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val emptyCity = City()
 
-    /* try to do with just weekforecastui livedata for now
+    /* try to do with just weekforecast livedata for now
         private var _todayForecastUi = MutableLiveData<String>()
         val todayForecastUi: LiveData<String>
             get() = _todayForecastUi
     */
+    /*
     private var _weekForecastUi = MutableLiveData<List<DayForecast>>()
     val weekForecastUi: MutableLiveData<List<DayForecast>>
         get() = _weekForecastUi
+     */
 
     private var _appUiState = MutableLiveData(AppUiStates.NORMAL)
     val appUiState: LiveData<AppUiStates> get() = _appUiState
@@ -183,13 +186,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _selectedCity = emptyCity
     }
 
-    fun setWeekForecast(weekForecastp: List<DayForecast>) {
-        _weekForecast = weekForecastp
+    fun setWeekForecast(weekForecast: List<DayForecast>) {
+        _weekForecast.value = weekForecast
     }
 
     fun resetWeekForecast() {
-        _weekForecast = listOf()
+        _weekForecast.value = listOf()
     }
+
     fun resetForecastResult() {
         _getForecastResult = ForecastResponse()
     }
@@ -341,7 +345,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         Log.d("MainFragment", "error=$error, newLocation == null")
                         setSpinnerVisibilityMainFragment(false)
                         _appUiState.value = AppUiStates.UNEXPECTED_MISTAKE //showUnexpectedMistake()
-                        return //TODO change showUnexpectedMistake showFailedToDetectGeo in release
+                        return //TODO change showUnexpectedMistake to showFailedToDetectGeo in release
                     }
                 }
                 GetLocationByGpsErrors.MISSING_PERMISSION -> {

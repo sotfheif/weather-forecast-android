@@ -30,6 +30,7 @@ class CityFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.setNormalAppUiState()
         val myCityListAdapter = MyCityListAdapter {
             viewModel.setSelectedCity(it)
             viewModel.resetWeekForecast()

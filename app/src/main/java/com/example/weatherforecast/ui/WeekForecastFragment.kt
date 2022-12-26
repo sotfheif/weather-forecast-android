@@ -62,7 +62,7 @@ class WeekForecastFragment : Fragment() {
             99 to getString(R.string.wc99)
         )
 
-        myWeekForecastListAdapter.submitList(viewModel.weekForecast.map {
+        myWeekForecastListAdapter.submitList(viewModel.weekForecast.value?.map {
             weatherCodeToWords(it, weatherCodeMap)
         })
     }

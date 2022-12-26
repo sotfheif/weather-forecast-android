@@ -29,14 +29,12 @@ import java.util.*
 private const val TAG = "MainFragment"
 class MainFragment : Fragment() {
 
-    //TODO show error dialogs in UI, observing appuistate (or appstate) livedata from viewmodel
-    //TODO update todayforecast in ui, observing livedata from viewmodel
     //TODO test connection unavailable
-    //TODO bug sometimes forecast won't appear in ui. like when internet speed is low, you first press show forecast, but deny the perm, then enter and select some city and press showforecast after clicking show forecst once more it appears
+    //TODO MB RESOLVED bug sometimes forecast won't appear in ui. like when internet speed is low, you first press show forecast, but deny the perm, then enter and select some city and press showforecast after clicking show forecst once more it appears
     //TODO where necessary prevent calling functions (like after clicking a button), when they are already running. or stop some functions after conflicting functions are called
-    //TODO check setSpinnerVisibility placement. sometimes mainfragment showforecast spinner won't dissapear (when rotating device during loading
+    //TODO check setSpinnerVisibility placement.
     //TODO later review architecture
-    //TODO later download web service's location db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
+    //TODO later download web service's location (cities) db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
     //TODO later in search field (before any chars entered) show previous location search queries(or selected results(locations)?
     /*
     companion object {
@@ -97,7 +95,7 @@ class MainFragment : Fragment() {
             }
             viewModel.resetWeekForecast()
             binding.weekForecastButton.isEnabled =
-                (viewModel.weekForecast.isNotEmpty())
+                (viewModel.weekForecast.value?.isNotEmpty() == true)
             binding.todayForecastTextView.text = ""
             viewModel.resetSelectedCity()
             binding.selectedCityTextView.text =
@@ -193,13 +191,17 @@ class MainFragment : Fragment() {
                         MainFragmentDirections.actionMainFragmentToCityFragment()
                     )
                 MainViewModel.AppUiStates.LAT_OR_LONG_NULL -> showLatOrLongNullDialog()
+                else -> {}//"w: enum arg can be null in java
             }
         }
 
-        viewModel.weekForecastUi.observe(this.viewLifecycleOwner) {
-            binding.todayForecastTextView.text = prepDayForecastUiText(it[0])
-            binding.weekForecastButton.isEnabled =
-                (viewModel.weekForecastUi.value?.isNotEmpty() == true)
+        viewModel.weekForecast.observe(this.viewLifecycleOwner) {
+            if (viewModel.weekForecast.value.isNullOrEmpty()) {
+                binding.weekForecastButton.isEnabled = false
+            } else {
+                binding.todayForecastTextView.text = prepDayForecastUiText(it[0])
+                binding.weekForecastButton.isEnabled = true
+            }
         }
 
         weatherCodeMap = mapOf(/*mb do something with this*/
@@ -511,7 +513,7 @@ class MainFragment : Fragment() {
         } else { //if no fresh enough location is present, detect location
             val (newLocation, error) = getLocationByGps(locationManager)
             Log.d("MainFragment", "string after newLocation, error assignment")
-            when (error) {//TODO mb replace returns/spinnervissets, or leave one
+            when (error) {//TODO mb replace returns/spinnervisibilitysets, or leave one
                 GetLocationByGpsErrors.GPS_IS_OFF -> {
                     viewModel.setSpinnerVisibilityMainFragment(false)
                     showNoGeoDialog(); return
@@ -602,7 +604,7 @@ class MainFragment : Fragment() {
     */
 
     private fun prepDayForecastUiText(dayForecast: DayForecast): String {
-        return if (viewModel.weekForecast.isEmpty()) {
+        return if (viewModel.weekForecast.value.isNullOrEmpty()) {
             ""
         } else {
             getString(
