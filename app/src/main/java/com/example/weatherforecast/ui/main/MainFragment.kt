@@ -14,24 +14,26 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.weatherforecast.R
 import com.example.weatherforecast.data.DayForecast
 import com.example.weatherforecast.databinding.FragmentMainBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.launch
 import java.util.*
 
 private const val TAG = "MainFragment"
 class MainFragment : Fragment() {
-
+    //TODO BUG when shouldshowrationale is true if showForecastButton is clicked consequently fast enough, several rationaleDialogs appear
+    //TODO check that where necessary additional function calls are prevented (like after fast successive buttonclicks) or that some functions stop after conflicting functions are called
     //TODO test connection unavailable
-    //TODO MB RESOLVED bug sometimes forecast won't appear in ui. like when internet speed is low, you first press show forecast, but deny the perm, then enter and select some city and press showforecast after clicking show forecst once more it appears
-    //TODO where necessary prevent calling functions (like after clicking a button), when they are already running. or stop some functions after conflicting functions are called
+    //TODO make "enter" press selectcitybutton
+    //TODO mb BUG when internet is turned off after pressing showfirecast "connection timeout" dialog appears
+    //TODO BUG sometimes forecast won't appear in ui. mb is necessary for internet speed to be low. as one of solutions can  after clicking show forecst once more it appears
     //TODO check setSpinnerVisibility placement.
     //TODO later review architecture
     //TODO later download web service's location (cities) db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
@@ -54,7 +56,7 @@ class MainFragment : Fragment() {
                 ActivityResultContracts.RequestPermission()
             ) { isGranted: Boolean ->
                 if (isGranted) {
-                    viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.setShowForecastButtonWork(false)
                         if (!isNetworkAvailable(activity?.applicationContext)) {
                             viewModel.setAppUiState(MainViewModel.AppUiStates.NO_INTERNET)//showNoInternetDialog()
                         } else {
@@ -62,9 +64,8 @@ class MainFragment : Fragment() {
                             //prepDayForecastUiText()
                         }
                         //viewModel.setSpinnerVisibilityMainFragment(false)
-                    }
                 } else {
-                    //viewModel.setSpinnerVisibilityMainFragment(false)
+                    viewModel.setShowForecastButtonWork(false)
                     viewModel.setAppUiState(MainViewModel.AppUiStates.GEO_PERM_REQUIRED)//showGeoPermissionRequiredDialog()
                 }
             }
@@ -84,12 +85,11 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "onViewCreated")
         binding.showForecastButton.setOnClickListener {
-            //viewLifecycleOwner.lifecycleScope.launch {
-                onShowForecastButtonClicked()
-            //}
+            onShowForecastButtonClicked()
         }
         binding.currentLocationButton.setOnClickListener {
             Log.d(TAG, "CurrentLocationButton onclicklistener")
+            closeVirtualKeyboard()
             if (viewModel.selectedCity == viewModel.emptyCity) {
                 return@setOnClickListener
             }
@@ -99,61 +99,26 @@ class MainFragment : Fragment() {
             binding.todayForecastTextView.text = ""
             viewModel.resetSelectedCity()
             binding.selectedCityTextView.text =
-                getString(R.string.selected_city_text_current_location)
+                getString(
+                    R.string.selected_location_text_prefix,
+                    getString(R.string.selected_city_text_current_location)
+                )
             Log.d(
                 TAG,
                 "set selectedCityTextView.text = ${getString(R.string.selected_city_text_current_location)}"
             )
         }
-        /*
-        binding.rbSelectCity.setOnClickListener {
-
-            Log.d(TAG, "rbSelectCity onclicklistener")
-            if(viewModel.locationSettingOption.value==MainViewModel.LocSetOptions.SELECT){
-                return@setOnClickListener
-            }
-            viewModel.setLocOption(MainViewModel.LocSetOptions.SELECT)
-            viewModel.resetWeekForecast()
-
-        }
-        viewModel.locationSettingOption.observe(this.viewLifecycleOwner) { option ->
-            when (option) {
-                MainViewModel.LocSetOptions.CURRENT -> {
-                    binding.rbCurrentCity.isChecked = true
-                    binding.textField.isEnabled = false
-                    binding.selectCityButton.isEnabled = false
-                    viewModel.resetSelectedCity()
-                    viewModel.resetWeekForecast()
-                }
-                MainViewModel.LocSetOptions.SELECT -> {
-                    binding.rbSelectCity.isChecked = true
-                    binding.textField.isEnabled = true
-                    binding.selectCityButton.isEnabled = true
-                    binding.selectedCityTextView.text = ""
-                    viewModel.resetWeekForecast()
-                }
-                else -> {}
-            }
-
-        }
-         */
 
         binding.selectCityButton.setOnClickListener {//TODO  mb extract THIS BLOCK OF CODE INTO A FUNCTION
-            if (binding.textFieldInput.text.toString().isBlank()) {
-                Snackbar.make(
-                    binding.showForecastButton,
-                    getString(R.string.enter_city_snackbar),
-                    Snackbar.LENGTH_SHORT
-                )
-                    .show()
-            } else if (isNetworkAvailable(activity?.applicationContext)) {
-                viewModel.findCity(binding.textFieldInput.text.toString())
-            } else showNoInternetDialog()
+            onSelectCityButtonClicked()
         }
 
         binding.weekForecastButton.setOnClickListener {
-            val action = MainFragmentDirections.actionMainFragmentToItemFragment()
-            this.findNavController().navigate(action)
+            try {
+                this.findNavController()
+                    .navigate(MainFragmentDirections.actionMainFragmentToItemFragment())
+            } catch (_: Throwable) {
+            }
         }
 /*
         viewModel.selectedCity.observe(this.viewLifecycleOwner) { city ->
@@ -186,10 +151,12 @@ class MainFragment : Fragment() {
                 MainViewModel.AppUiStates.WAITING_CITY_SEARCH -> {}
                 MainViewModel.AppUiStates.WAITING_FORECAST_RESPONSE -> {}
                 MainViewModel.AppUiStates.CITY_NOT_FOUND -> showCityNotFoundDialog()
-                MainViewModel.AppUiStates.GO_TO_CITY_FRAGMENT -> this@MainFragment
-                    .findNavController().navigate(
-                        MainFragmentDirections.actionMainFragmentToCityFragment()
-                    )
+                MainViewModel.AppUiStates.GO_TO_CITY_FRAGMENT ->// try {
+                    this@MainFragment
+                        .findNavController().navigate(
+                            MainFragmentDirections.actionMainFragmentToCityFragment()
+                        )
+                //}catch (_: Throwable){ }
                 MainViewModel.AppUiStates.LAT_OR_LONG_NULL -> showLatOrLongNullDialog()
                 else -> {}//"w: enum arg can be null in java
             }
@@ -234,12 +201,21 @@ class MainFragment : Fragment() {
             96 to getString(R.string.wc96),
             99 to getString(R.string.wc99)
         )
-        viewModel.statusImageMainFragment.observe(this.viewLifecycleOwner)
+        viewModel.forecastStatusImageMainFragment.observe(this.viewLifecycleOwner)
         {
             if (it) {
-                binding.statusImage.visibility = View.VISIBLE
+                binding.statusImageForecast.visibility = View.VISIBLE
             } else {
-                binding.statusImage.visibility = View.GONE
+                binding.statusImageForecast.visibility = View.GONE
+            }
+        }
+        viewModel.cityStatusImageMainFragment.observe(this.viewLifecycleOwner) {
+            if (it) {
+                binding.selectCityButton.text = ""
+                binding.statusImageCity.visibility = View.VISIBLE
+            } else {
+                binding.statusImageCity.visibility = View.GONE
+                binding.selectCityButton.text = getString(R.string.select_city_button)
             }
         }
 
@@ -308,8 +284,11 @@ class MainFragment : Fragment() {
         //prepDayForecastUiText()
         viewModel.selectedCity.let {
             binding.selectedCityTextView.text = if (it == viewModel.emptyCity)
-                getString(R.string.selected_city_text_current_location)
-            else viewModel.prepCityForUi(it)
+                getString(
+                    R.string.selected_location_text_prefix,
+                    getString(R.string.selected_city_text_current_location)
+                )
+            else getString(R.string.selected_location_text_prefix, viewModel.prepCityForUi(it))
         }
     }
 
@@ -410,7 +389,7 @@ class MainFragment : Fragment() {
                 )
             }
             .setNegativeButton(R.string.location_permission_rationale_neg_button) { _, _ ->
-                viewModel.setSpinnerVisibilityMainFragment(false)
+                viewModel.setForecastSpinnerVisibilityMainFragment(false)
             }
             .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
@@ -431,6 +410,7 @@ class MainFragment : Fragment() {
                 viewModel.setAppUiState(MainViewModel.AppUiStates.GEO_PERM_RATIONALE) //showGeoPermissionRationaleDialog(activityResultLauncher)
             }
             else -> {
+                viewModel.setShowForecastButtonWork(true)
                 activityResultLauncher.launch(
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 )
@@ -512,7 +492,7 @@ class MainFragment : Fragment() {
             location = latestKnownLoc
         } else { //if no fresh enough location is present, detect location
             val (newLocation, error) = getLocationByGps(locationManager)
-            Log.d("MainFragment", "string after newLocation, error assignment")
+            Log.d(TAG, "string after newLocation, error assignment")
             when (error) {//TODO mb replace returns/spinnervisibilitysets, or leave one
                 GetLocationByGpsErrors.GPS_IS_OFF -> {
                     viewModel.setSpinnerVisibilityMainFragment(false)
@@ -520,18 +500,18 @@ class MainFragment : Fragment() {
                 }
                 GetLocationByGpsErrors.LOC_DETECTION_FAILED -> {
                     viewModel.setSpinnerVisibilityMainFragment(false)
-                    Log.d("MainFragment", "error=$error")
+                    Log.d(TAG, "error=$error")
                     showFailedToDetectGeoDialog(); return
                 }
                 GetLocationByGpsErrors.NO_ERROR -> {
                     if (newLocation == null) {
-                        Log.d("MainFragment", "error=$error, newLocation == null")
+                        Log.d(TAG, "error=$error, newLocation == null")
                         viewModel.setSpinnerVisibilityMainFragment(false)
                         showUnexpectedMistake(); return //TODO change showUnexpectedMistake showFailedToDetectGeo in release
                     }
                 }
                 GetLocationByGpsErrors.MISSING_PERMISSION -> {
-                    Log.d("MainFragment", "error=$error")
+                    Log.d(TAG, "error=$error")
                     showGeoPermissionRequiredDialog()
                     return
                 }
@@ -562,6 +542,7 @@ class MainFragment : Fragment() {
 */
 
     private fun onShowForecastButtonClicked() {
+        if (viewModel.showForecastButtonWork) return
         //viewModel.setSpinnerVisibilityMainFragment(true)
         if (!isNetworkAvailable(activity?.applicationContext)) {
             viewModel.setAppUiState(MainViewModel.AppUiStates.NO_INTERNET)
@@ -591,7 +572,7 @@ class MainFragment : Fragment() {
     }
 /*
     private fun setForecast(forecastResult: ForecastResponse) {
-        Log.d("MainFragment", "entered setForecast, forecastResult=$forecastResult")
+        Log.d(TAG, "entered setForecast, forecastResult=$forecastResult")
         val weekForecast = handleForecastResponse(forecastResult)
         if (weekForecast[0].latitude != null) { //TODO mb replace this check with something more elegant
             Log.d(TAG, "weekForecast[0].latitude != null")
@@ -660,4 +641,25 @@ class MainFragment : Fragment() {
         }
         return false
     }
+
+    fun closeVirtualKeyboard() {
+        ViewCompat.getWindowInsetsController(requireView())
+            ?.hide(WindowInsetsCompat.Type.ime())
+    }
+
+    fun onSelectCityButtonClicked() {
+        if (viewModel.selectCityButtonWork) return //TODO later mb move this into beginning of viewModel.findCity. or move here setting work to true from viewModel.findCity
+        closeVirtualKeyboard()
+        if (binding.textFieldInput.text.toString().isBlank()) {
+            Snackbar.make(
+                binding.showForecastButton,
+                getString(R.string.enter_city_snackbar),
+                Snackbar.LENGTH_SHORT
+            )
+                .show()
+        } else if (isNetworkAvailable(activity?.applicationContext)) {
+            viewModel.findCity(binding.textFieldInput.text.toString())
+        } else viewModel.setAppUiState(MainViewModel.AppUiStates.NO_INTERNET)
+    }
+
 }

@@ -24,13 +24,13 @@ class MyWeekForecastListAdapter :
             binding.forecast.text =
                 holder.itemView.context.getString(
                     R.string.day_forecast,
-                    dayForecast?.temperature2mMin ?: "",
-                    dayForecast?.temperature2mMax ?: "",
-                    dayForecast?.weather ?: "",
-                    dayForecast?.pressure ?: "",
-                    dayForecast?.windspeed10mMax ?: "",
-                    dayForecast?.winddirection10mDominant?: "",
-                    dayForecast?.relativeHumidity?: ""
+                    dayForecast.temperature2mMin ?: "",
+                    dayForecast.temperature2mMax ?: "",
+                    dayForecast.weather ?: "",
+                    dayForecast.pressure ?: "",
+                    dayForecast.windspeed10mMax ?: "",
+                    dayForecast.winddirection10mDominant ?: "",
+                    dayForecast.relativeHumidity ?: ""
                 )
         }
     }

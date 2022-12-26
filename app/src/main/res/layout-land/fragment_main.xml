@@ -23,6 +23,17 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
+    <Button
+        style="?attr/materialButtonOutlinedStyle"
+        android:id="@+id/select_city_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/select_city_button"
+        app:layout_constraintTop_toBottomOf="@id/textField"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_default="percent"
+        app:layout_constraintWidth_percent=".5" />
+
     <ImageView
         android:id="@+id/status_image_city"
         android:layout_width="117dp"
@@ -38,32 +49,24 @@
 
     <Button
         style="?attr/materialButtonOutlinedStyle"
-        android:id="@+id/select_city_button"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/select_city_button"
-        app:layout_constraintTop_toBottomOf="@id/textField"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <Button
-        style="?attr/materialButtonOutlinedStyle"
         android:id="@+id/current_location_button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/selected_city_text_current_location"
         app:layout_constraintTop_toBottomOf="@id/select_city_button"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintWidth_default="percent"
+        app:layout_constraintWidth_percent=".5" />
 
     <TextView
         android:id="@+id/selectedCityTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/current_location_button"
-        tools:text="Rome" />
+        app:layout_constraintStart_toEndOf="@id/select_city_button"
+        app:layout_constraintTop_toBottomOf="@id/textField"
+        tools:text="Selected location: Rome" />
 
     <Button
         style="?attr/materialButtonOutlinedStyle"
@@ -71,19 +74,20 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/show_weather_button"
-        app:layout_constraintTop_toBottomOf="@id/selectedCityTextView"
+        app:layout_constraintTop_toBottomOf="@id/current_location_button"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        />
+        app:layout_constraintWidth_default="percent"
+        app:layout_constraintWidth_percent=".5" />
+
     <TextView
         android:id="@+id/todayForecastTextView"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        tools:text=""
-        app:layout_constraintTop_toBottomOf="@id/showForecastButton"
+        app:layout_constraintTop_toBottomOf="@id/selectedCityTextView"
+        app:layout_constraintStart_toEndOf="@id/select_city_button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/weekForecastButton" />
+        android:layout_marginStart="20dp"
+        tools:text="Weather today" />
 
     <ImageView
         android:id="@+id/status_image_forecast"
@@ -91,12 +95,12 @@
         android:layout_height="93dp"
         android:src="@drawable/loading_animation"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/weekForecastButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/showForecastButton"
-        android:contentDescription="@string/status_image_forecast_main_fragm_content_desc"
-        tools:visibility="visible" />
+        app:layout_constraintBottom_toBottomOf="@id/todayForecastTextView"
+        app:layout_constraintEnd_toEndOf="@id/todayForecastTextView"
+        app:layout_constraintStart_toStartOf="@id/todayForecastTextView"
+        app:layout_constraintTop_toTopOf="@id/todayForecastTextView"
+        android:contentDescription="@string/status_image_forecast_main_fragm_content_desc" />
+
     <Button
         style="?attr/materialButtonOutlinedStyle"
         android:id="@+id/weekForecastButton"
@@ -106,7 +110,7 @@
         android:enabled="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        />
+        app:layout_constraintWidth_default="percent"
+        app:layout_constraintWidth_percent=".5" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

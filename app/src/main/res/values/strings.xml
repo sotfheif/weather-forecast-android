@@ -67,4 +67,7 @@
     <string name="location_permission_rationale_pos_button">Grant</string>
     <string name="location_permission_rationale_neg_button">Cancel</string>
     <string name="enter_city_snackbar">Please, enter location name</string>
+    <string name="status_image_forecast_main_fragm_content_desc">loading spinner</string>
+    <string name="status_image_city_main_fragm_content_desc">loading spinner</string>
+    <string name="selected_location_text_prefix">Selected location: %1$s</string>
 </resources>

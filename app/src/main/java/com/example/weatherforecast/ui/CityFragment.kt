@@ -35,7 +35,7 @@ class CityFragment :
             viewModel.setSelectedCity(it)
             viewModel.resetWeekForecast()
             val action = CityFragmentDirections.actionCityFragmentToMainFragment()
-            view.findNavController().navigate(action)
+            view.findNavController().navigate(action)//TODO later mb prevent doubleclick?
         }
             binding.recyclerView.layoutManager = LinearLayoutManager(this.context)
             binding.recyclerView.adapter = myCityListAdapter
@@ -46,14 +46,6 @@ class CityFragment :
             }
             else {
                 showUnexpectedMistake()
-            }
-        }
-
-        viewModel.statusImageCityFragment.observe(this.viewLifecycleOwner) {
-            if (it) {
-                binding.statusImage.visibility = View.VISIBLE
-            } else {
-                binding.statusImage.visibility = View.GONE
             }
         }
     }
