@@ -88,7 +88,7 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "onViewCreated")
         binding.showForecastButton.setOnClickListener {
-            viewModel.onShowForecastButtonClicked() // was fragment's onShowForecastButtonClicked()
+        viewModel.onShowForecastButtonClicked() // was fragment's onShowForecastButtonClicked()
         }
         binding.currentLocationButton.setOnClickListener {
             Log.d(TAG, "CurrentLocationButton onclicklistener")

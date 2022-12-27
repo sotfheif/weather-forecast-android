@@ -416,33 +416,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun onShowForecastButtonClicked() {
         if (showForecastButtonWork) return
-        setShowForecastButtonWork(true)
-        //viewModel.setSpinnerVisibilityMainFragment(true)
-        if (!isNetworkAvailable(context)) {
-            setAppUiState(AppUiStates.NO_INTERNET)
-            //viewModel.setSpinnerVisibilityMainFragment(false)
-            setShowForecastButtonWork(false)
-        } else {
-            if (selectedCity == emptyCity) {
-                setAppUiState(AppUiStates.CHECK_LOC_PERM)
-                setNormalAppUiState()
+        viewModelScope.launch {
+            setShowForecastButtonWork(true)
+            //viewModel.setSpinnerVisibilityMainFragment(true)
+            if (!isNetworkAvailable(context)) {
+                setAppUiState(AppUiStates.NO_INTERNET)
+                //viewModel.setSpinnerVisibilityMainFragment(false)
                 setShowForecastButtonWork(false)
-                //checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
-            } else /*MainViewModel.LocSetOptions.SELECT*/ {
-                if (selectedCity.name == null) { //TODO check if this branch will ever exec
-                    setAppUiState(AppUiStates.EMPTY_CITY_TEXT_FIELD)
+            } else {
+                if (selectedCity == emptyCity) {
+                    setAppUiState(AppUiStates.CHECK_LOC_PERM)
                     setNormalAppUiState()
                     setShowForecastButtonWork(false)
-                } else {
-                    tryGetSelCityForecast()
+                    //checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
+                } else /*MainViewModel.LocSetOptions.SELECT*/ {
+                    if (selectedCity.name == null) { //TODO check if this branch will ever exec
+                        setAppUiState(AppUiStates.EMPTY_CITY_TEXT_FIELD)
+                        setNormalAppUiState()
+                        setShowForecastButtonWork(false)
+                    } else {
+                        tryGetSelCityForecast()
+                    }
+                    //viewModel.setSpinnerVisibilityMainFragment(false)
                 }
-                //viewModel.setSpinnerVisibilityMainFragment(false)
+                /* moving to both when branches, cause had to somehow wait for activitylauncher,
+            mb should move to distinct function and pass it as lambda in higher order fun or just call it or smth
+            setForecast(viewModel.getForecastResult.value)
+            showDayForecast()
+            viewModel.setSpinnerVisibilityMainFragment(false)*/
             }
-            /* moving to both when branches, cause had to somehow wait for activitylauncher,
-        mb should move to distinct function and pass it as lambda in higher order fun or just call it or smth
-        setForecast(viewModel.getForecastResult.value)
-        showDayForecast()
-        viewModel.setSpinnerVisibilityMainFragment(false)*/
         }
     }
 
