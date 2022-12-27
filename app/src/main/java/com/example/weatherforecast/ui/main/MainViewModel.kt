@@ -1,5 +1,5 @@
 package com.example.weatherforecast.ui.main
-//TODO CHECK thar forecasts livedata for UI is set to null in the beginning of some funs
+//TODO CHECK thar forecast livedata for UI is set to null in the beginning of some funs
 
 import android.annotation.SuppressLint
 import android.app.Application
@@ -7,6 +7,9 @@ import android.content.Context
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.*
@@ -79,7 +82,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         NORMAL, WAITING_GEO, WAITING_CITY_SEARCH, WAITING_FORECAST_RESPONSE,
         GEO_PERM_REQUIRED, GEO_PERM_RATIONALE, NO_GEO, GEO_DETECT_FAILED, NO_INTERNET,
         CONNECTION_TIMEOUT, CITY_NOT_FOUND, UNEXPECTED_MISTAKE, GO_TO_CITY_FRAGMENT,
-        LAT_OR_LONG_NULL/*TODO remove in release. debug value*/
+        EMPTY_CITY_TEXT_FIELD, CHECK_LOC_PERM, LAT_OR_LONG_NULL/*TODO remove in release. debug value*/
     }
 
     enum class GetLocationByGpsErrors {
@@ -279,7 +282,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     //@SuppressLint("MissingPermission")
-    suspend fun tryGetCurrentLocForecast() {//TODO add permission exception handling
+    suspend fun tryGetCurrentLocForecast() {
         setForecastSpinnerVisibilityMainFragment(true)
         lateinit var location: Location
         val locationManager: LocationManager = context
@@ -377,21 +380,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun tryGetSelCityForecast() {
         viewModelScope.launch {
             setShowForecastButtonWork(true)
-            selectedCity.let {
-                if (it.latitude != null && it.longitude != null) {
-                    val exception = getForecastByCoords(it.latitude, it.longitude)
-                    if (exception != Constants.emptyException) {
-                        _appUiState.value =
-                            AppUiStates.CONNECTION_TIMEOUT //showConnectionTimeoutDialog()
+            try {
+                selectedCity.let {
+                    if (it.latitude != null && it.longitude != null) {
+                        val exception = getForecastByCoords(it.latitude, it.longitude)
+                        if (exception != Constants.emptyException) {
+                            _appUiState.value =
+                                AppUiStates.CONNECTION_TIMEOUT //showConnectionTimeoutDialog()
+                        } else {
+                            setForecast(getForecastResult)
+                            //prepDayForecastUiText()
+                        }
                     } else {
-                        setForecast(getForecastResult)
-                        //prepDayForecastUiText()
+                        _appUiState.value =
+                            AppUiStates.LAT_OR_LONG_NULL/*showLatOrLongNullDialog()*/
                     }
-                } else {
-                    _appUiState.value = AppUiStates.LAT_OR_LONG_NULL/*showLatOrLongNullDialog()*/
                 }
+            } catch (e: Exception) {
+                Log.d(TAG, "$e")
+            } finally {
+                setShowForecastButtonWork(false)
             }
-            setShowForecastButtonWork(false)
         }
     }
 
@@ -399,10 +408,76 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _appUiState.value = appUiState
     }
 
+    fun checkNetworkFindCity(locQuery: String) {
+        if (isNetworkAvailable(context)) {
+            findCity(locQuery)
+        } else setAppUiState(AppUiStates.NO_INTERNET)
+    }
+
+    fun onShowForecastButtonClicked() {
+        if (showForecastButtonWork) return
+        setShowForecastButtonWork(true)
+        //viewModel.setSpinnerVisibilityMainFragment(true)
+        if (!isNetworkAvailable(context)) {
+            setAppUiState(AppUiStates.NO_INTERNET)
+            //viewModel.setSpinnerVisibilityMainFragment(false)
+            setShowForecastButtonWork(false)
+        } else {
+            if (selectedCity == emptyCity) {
+                setAppUiState(AppUiStates.CHECK_LOC_PERM)
+                setNormalAppUiState()
+                setShowForecastButtonWork(false)
+                //checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
+            } else /*MainViewModel.LocSetOptions.SELECT*/ {
+                if (selectedCity.name == null) { //TODO check if this branch will ever exec
+                    setAppUiState(AppUiStates.EMPTY_CITY_TEXT_FIELD)
+                    setNormalAppUiState()
+                    setShowForecastButtonWork(false)
+                } else {
+                    tryGetSelCityForecast()
+                }
+                //viewModel.setSpinnerVisibilityMainFragment(false)
+            }
+            /* moving to both when branches, cause had to somehow wait for activitylauncher,
+        mb should move to distinct function and pass it as lambda in higher order fun or just call it or smth
+        setForecast(viewModel.getForecastResult.value)
+        showDayForecast()
+        viewModel.setSpinnerVisibilityMainFragment(false)*/
+        }
+    }
+
+    fun isNetworkAvailable(context: Context?): Boolean { //returns true if connected to wifi without internet
+        if (context == null) return false
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            if (capabilities != null) {
+                when {
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+                        return true
+                    }
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
+                        return true
+                    }
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> {
+                        return true
+                    }
+                }
+            }
+        } else @Suppress("DEPRECATION") {
+            val activeNetworkInfo = connectivityManager.activeNetworkInfo
+            if (activeNetworkInfo != null && activeNetworkInfo.isConnected) {
+                return true
+            }
+        }
+        return false
+    }
+
 
     //@SuppressLint("MissingPermission")
     suspend fun getLocationByGps(locationManager: LocationManager): Pair<Location?, GetLocationByGpsErrors> {
-        //TODO add permission exception handling (mb just in parent func)
         Log.d(TAG, "entered getLocationByGps")
         var error = GetLocationByGpsErrors.NO_ERROR
         var timeoutJobCancelReason = TimeoutJobCancelReasons.NOT_CANCELLED // mb unnecessary

@@ -28,13 +28,16 @@ import java.util.*
 
 private const val TAG = "MainFragment"
 class MainFragment : Fragment() {
-    //TODO BUG when shouldshowrationale is true if showForecastButton is clicked consequently fast enough, several rationaleDialogs appear
+    //TODO mb replace forecast loading apinner in ui, make it similar to city spinner
+    //TODO check selectCityButton lag for a bit after clicking
+    //TODO BUG mb resolved. when shouldshowrationale is true if showForecastButton is clicked consequently fast enough, several rationaleDialogs appear
     //TODO check that where necessary additional function calls are prevented (like after fast successive buttonclicks) or that some functions stop after conflicting functions are called
     //TODO test connection unavailable
     //TODO make "enter" press selectcitybutton
-    //TODO mb BUG when internet is turned off after pressing showfirecast "connection timeout" dialog appears
-    //TODO BUG sometimes forecast won't appear in ui. mb is necessary for internet speed to be low. as one of solutions can  after clicking show forecst once more it appears
-    //TODO check setSpinnerVisibility placement.
+    //TODO mb BUG when internet is turned off after pressing showforecast "connection timeout" dialog appears
+    //TODO BUG sometimes forecast won't appear in ui(after spinner dissappeared). mb is necessary for internet speed to be low. as one of solutions can  after clicking show forecst once more it appears
+    //TODO BUG when clicked showforecast fast successively, spinner may continue being visible after no_internet dialog, and then (long after the dialog closed) dissappear without  anything shown
+    //TODO check setSpinnerVisibility() placement (in code).
     //TODO later review architecture
     //TODO later download web service's location (cities) db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
     //TODO later in search field (before any chars entered) show previous location search queries(or selected results(locations)?
@@ -85,7 +88,7 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "onViewCreated")
         binding.showForecastButton.setOnClickListener {
-            onShowForecastButtonClicked()
+            viewModel.onShowForecastButtonClicked() // was fragment's onShowForecastButtonClicked()
         }
         binding.currentLocationButton.setOnClickListener {
             Log.d(TAG, "CurrentLocationButton onclicklistener")
@@ -109,7 +112,7 @@ class MainFragment : Fragment() {
             )
         }
 
-        binding.selectCityButton.setOnClickListener {//TODO  mb extract THIS BLOCK OF CODE INTO A FUNCTION
+        binding.selectCityButton.setOnClickListener {
             onSelectCityButtonClicked()
         }
 
@@ -158,6 +161,12 @@ class MainFragment : Fragment() {
                         )
                 //}catch (_: Throwable){ }
                 MainViewModel.AppUiStates.LAT_OR_LONG_NULL -> showLatOrLongNullDialog()
+                MainViewModel.AppUiStates.EMPTY_CITY_TEXT_FIELD -> Snackbar.make(
+                    binding.showForecastButton,
+                    getString(R.string.enter_city_snackbar),
+                    Snackbar.LENGTH_SHORT
+                ).show()
+                MainViewModel.AppUiStates.CHECK_LOC_PERM -> checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
                 else -> {}//"w: enum arg can be null in java
             }
         }
@@ -395,7 +404,7 @@ class MainFragment : Fragment() {
             .show()
     }
 
-    private fun checkPermDetectLoc(activityResultLauncher: ActivityResultLauncher<String>) {
+    fun checkPermDetectLoc(activityResultLauncher: ActivityResultLauncher<String>) {
         when {
             ContextCompat.checkSelfPermission(
                 requireContext(),
@@ -410,7 +419,7 @@ class MainFragment : Fragment() {
                 viewModel.setAppUiState(MainViewModel.AppUiStates.GEO_PERM_RATIONALE) //showGeoPermissionRationaleDialog(activityResultLauncher)
             }
             else -> {
-                viewModel.setShowForecastButtonWork(true)
+                //viewModel.setShowForecastButtonWork(true)
                 activityResultLauncher.launch(
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 )
@@ -462,7 +471,7 @@ class MainFragment : Fragment() {
 
     /*
     //@SuppressLint("MissingPermission")
-    suspend fun tryGetCurrentLocForecast() {//TODO add permission exception handling
+    suspend fun tryGetCurrentLocForecast() {
         lateinit var location: Location
         val locationManager: LocationManager = /*context /*was leaking*/*/
             activity?.applicationContext
@@ -493,7 +502,7 @@ class MainFragment : Fragment() {
         } else { //if no fresh enough location is present, detect location
             val (newLocation, error) = getLocationByGps(locationManager)
             Log.d(TAG, "string after newLocation, error assignment")
-            when (error) {//TODO mb replace returns/spinnervisibilitysets, or leave one
+            when (error) {
                 GetLocationByGpsErrors.GPS_IS_OFF -> {
                     viewModel.setSpinnerVisibilityMainFragment(false)
                     showNoGeoDialog(); return
@@ -507,7 +516,7 @@ class MainFragment : Fragment() {
                     if (newLocation == null) {
                         Log.d(TAG, "error=$error, newLocation == null")
                         viewModel.setSpinnerVisibilityMainFragment(false)
-                        showUnexpectedMistake(); return //TODO change showUnexpectedMistake showFailedToDetectGeo in release
+                        showUnexpectedMistake(); return
                     }
                 }
                 GetLocationByGpsErrors.MISSING_PERMISSION -> {
@@ -540,8 +549,8 @@ class MainFragment : Fragment() {
     }
 
 */
-
-    private fun onShowForecastButtonClicked() {
+/* replaced by viewmodel's fun with the same name
+    fun onShowForecastButtonClicked() {
         if (viewModel.showForecastButtonWork) return
         //viewModel.setSpinnerVisibilityMainFragment(true)
         if (!isNetworkAvailable(activity?.applicationContext)) {
@@ -552,12 +561,8 @@ class MainFragment : Fragment() {
                 checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
             } else /*MainViewModel.LocSetOptions.SELECT*/ {
                 if (viewModel.selectedCity.name == null) {
-                    Snackbar.make(
-                        binding.showForecastButton,
-                        getString(R.string.select_city_snackbar),
-                        Snackbar.LENGTH_SHORT
-                    )
-                        .show()
+                    viewModel.setAppUiState(MainViewModel.AppUiStates.EMPTY_CITY_TEXT_FIELD)
+                    viewModel.setNormalAppUiState()
                 } else {
                     viewModel.tryGetSelCityForecast()
                 }
@@ -570,11 +575,12 @@ class MainFragment : Fragment() {
         viewModel.setSpinnerVisibilityMainFragment(false)*/
         }
     }
+*/
 /*
     private fun setForecast(forecastResult: ForecastResponse) {
         Log.d(TAG, "entered setForecast, forecastResult=$forecastResult")
         val weekForecast = handleForecastResponse(forecastResult)
-        if (weekForecast[0].latitude != null) { //TODO mb replace this check with something more elegant
+        if (weekForecast[0].latitude != null) {
             Log.d(TAG, "weekForecast[0].latitude != null")
             viewModel.setWeekForecast(weekForecast)
         } else {
@@ -647,19 +653,16 @@ class MainFragment : Fragment() {
             ?.hide(WindowInsetsCompat.Type.ime())
     }
 
-    fun onSelectCityButtonClicked() {
-        if (viewModel.selectCityButtonWork) return //TODO later mb move this into beginning of viewModel.findCity. or move here setting work to true from viewModel.findCity
+    private fun onSelectCityButtonClicked() {
+        if (viewModel.selectCityButtonWork) return //TODO later mb move this into beginning of viewModel.findCity (or checkknetworkffindcity). or move here setting work to true from viewModel.findCity
         closeVirtualKeyboard()
         if (binding.textFieldInput.text.toString().isBlank()) {
-            Snackbar.make(
-                binding.showForecastButton,
-                getString(R.string.enter_city_snackbar),
-                Snackbar.LENGTH_SHORT
-            )
-                .show()
-        } else if (isNetworkAvailable(activity?.applicationContext)) {
-            viewModel.findCity(binding.textFieldInput.text.toString())
-        } else viewModel.setAppUiState(MainViewModel.AppUiStates.NO_INTERNET)
+            viewModel.setAppUiState(MainViewModel.AppUiStates.EMPTY_CITY_TEXT_FIELD)
+            viewModel.setNormalAppUiState()
+        } else viewModel.checkNetworkFindCity(binding.textFieldInput.text.toString())
+        /*if (isNetworkAvailable(activity?.applicationContext)) {
+                viewModel.findCity(binding.textFieldInput.text.toString())
+            } else viewModel.setAppUiState(MainViewModel.AppUiStates.NO_INTERNET)*/
     }
 
 }
