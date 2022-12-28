@@ -229,11 +229,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     suspend fun findCity(query: String) {
-        setCitySpinnerVisibilityMainFragment(true)
         var foundAnyCities = Pair(false, Constants.emptyException)
         resetForecastResult()
         foundAnyCities = getCitiesByName(query)
-        setCitySpinnerVisibilityMainFragment(false)
         if (foundAnyCities.first) {
             _appUiState.value = AppUiStates.GO_TO_CITY_FRAGMENT/*this@MainFragment.findNavController().navigate(
                     MainFragmentDirections.actionMainFragmentToCityFragment()
@@ -408,9 +406,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             if (selectCityButtonWork) return@launch
             setSelectCityButtonWork(true)
+            setCitySpinnerVisibilityMainFragment(true)
             if (isNetworkAvailable(context)) {
                 findCity(locQuery)
             } else setAppUiState(AppUiStates.NO_INTERNET)
+            setCitySpinnerVisibilityMainFragment(false)
             setSelectCityButtonWork(false)
         }
     }
