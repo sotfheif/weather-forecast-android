@@ -28,8 +28,9 @@ import java.util.*
 
 private const val TAG = "MainFragment"
 class MainFragment : Fragment() {
-    //TODO mb replace forecast loading apinner in ui, make it similar to city spinner
-    //TODO check selectCityButton lag for a bit after clicking
+    //TODO BEFORE RELEASE: remove/replace unexpectedmistake dialog and all code commented as debug feature, replace connection timeout with connection error.
+    //TODO mb replace forecast loading spinner in ui, make it similar to city spinner
+    //TODO OK FOR NOW after app launch first button click (showForecast or selectCity with textinput no blank) is laggy, probably due to viewmodel lazy initialization
     //TODO BUG mb resolved. when shouldshowrationale is true if showForecastButton is clicked consequently fast enough, several rationaleDialogs appear
     //TODO BUG if after install and launch showforecast is clicked quickly successively and then perm is denied, there wil be 2 no_perm dialogs
     //TODO check that where necessary additional function calls are prevented (like after fast successive buttonclicks) or that some functions stop after conflicting functions are called
