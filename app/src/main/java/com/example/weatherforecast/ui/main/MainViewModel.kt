@@ -93,13 +93,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         NOT_CANCELLED, ON_LOC_CHANGED, ON_PROVIDER_DISABLED
     }
 
-    private var _selectCityButtonWork = false
+    private var _selectCityButtonWork = false//TODO mb make this volatile
     val selectCityButtonWork: Boolean get() = _selectCityButtonWork
     fun setSelectCityButtonWork(boolean: Boolean) {
         _selectCityButtonWork = boolean
     }
 
-    private var _showForecastButtonWork = false
+    private var _showForecastButtonWork = false//TODO mb make this volatile
     val showForecastButtonWork: Boolean get() = _showForecastButtonWork
     fun setShowForecastButtonWork(boolean: Boolean) {
         _showForecastButtonWork = boolean
@@ -228,25 +228,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun findCity(query: String) {
-        viewModelScope.launch {
-            setSelectCityButtonWork(true)
-            setCitySpinnerVisibilityMainFragment(true)
-            var foundAnyCities = Pair(false, Constants.emptyException)
-            resetForecastResult()
-            foundAnyCities = getCitiesByName(query)
-            setCitySpinnerVisibilityMainFragment(false)
-            if (foundAnyCities.first) {
-                _appUiState.value = AppUiStates.GO_TO_CITY_FRAGMENT/*this@MainFragment.findNavController().navigate(
+    suspend fun findCity(query: String) {
+        setCitySpinnerVisibilityMainFragment(true)
+        var foundAnyCities = Pair(false, Constants.emptyException)
+        resetForecastResult()
+        foundAnyCities = getCitiesByName(query)
+        setCitySpinnerVisibilityMainFragment(false)
+        if (foundAnyCities.first) {
+            _appUiState.value = AppUiStates.GO_TO_CITY_FRAGMENT/*this@MainFragment.findNavController().navigate(
                     MainFragmentDirections.actionMainFragmentToCityFragment()
                 )*/
-            } else if (foundAnyCities.second !== Constants.emptyException) {
+        } else if (foundAnyCities.second !== Constants.emptyException) {
                 _appUiState.value = AppUiStates.CONNECTION_TIMEOUT//showConnectionTimeoutDialog()
             } else {
                 _appUiState.value = AppUiStates.CITY_NOT_FOUND//showCityNotFoundDialog()
             }
-            setSelectCityButtonWork(false)
-        }
     }
 
     private fun handleForecastResponse(forecastResponse: ForecastResponse):
@@ -409,9 +405,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun checkNetworkFindCity(locQuery: String) {
-        if (isNetworkAvailable(context)) {
-            findCity(locQuery)
-        } else setAppUiState(AppUiStates.NO_INTERNET)
+        viewModelScope.launch {
+            if (selectCityButtonWork) return@launch
+            setSelectCityButtonWork(true)
+            if (isNetworkAvailable(context)) {
+                findCity(locQuery)
+            } else setAppUiState(AppUiStates.NO_INTERNET)
+            setSelectCityButtonWork(false)
+        }
     }
 
     fun onShowForecastButtonClicked() {

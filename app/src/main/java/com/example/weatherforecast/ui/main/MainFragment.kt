@@ -35,7 +35,7 @@ class MainFragment : Fragment() {
     //TODO check that where necessary additional function calls are prevented (like after fast successive buttonclicks) or that some functions stop after conflicting functions are called
     //TODO test connection unavailable
     //TODO make "enter" press selectcitybutton
-    //TODO mb BUG when internet is turned off after pressing showforecast "connection timeout" dialog appears
+    //TODO mb BUG when internet is turned off after pressing showforecast, "connection timeout" dialog appears
     //TODO BUG sometimes forecast won't appear in ui(after spinner dissappeared). mb is necessary for internet speed to be low. as one of solutions can  after clicking show forecst once more it appears
     //TODO BUG when clicked showforecast fast successively, spinner may continue being visible after no_internet dialog, and then (long after the dialog closed) dissappear without  anything shown
     //TODO check setSpinnerVisibility() placement (in code).
@@ -151,9 +151,6 @@ class MainFragment : Fragment() {
                 MainViewModel.AppUiStates.NO_INTERNET -> showNoInternetDialog()
                 MainViewModel.AppUiStates.CONNECTION_TIMEOUT -> showConnectionTimeoutDialog()
                 MainViewModel.AppUiStates.UNEXPECTED_MISTAKE -> showUnexpectedMistake()
-                MainViewModel.AppUiStates.WAITING_GEO -> {}
-                MainViewModel.AppUiStates.WAITING_CITY_SEARCH -> {}
-                MainViewModel.AppUiStates.WAITING_FORECAST_RESPONSE -> {}
                 MainViewModel.AppUiStates.CITY_NOT_FOUND -> showCityNotFoundDialog()
                 MainViewModel.AppUiStates.GO_TO_CITY_FRAGMENT ->// try {
                     this@MainFragment
@@ -655,9 +652,9 @@ class MainFragment : Fragment() {
     }
 
     private fun onSelectCityButtonClicked() {
-        if (viewModel.selectCityButtonWork) return //TODO later mb move this into beginning of viewModel.findCity (or checkknetworkffindcity). or move here setting work to true from viewModel.findCity
+        //if (viewModel.selectCityButtonWork) return // moved this into beginning of viewModel.checkknetworkfindcity. or move here setting work to true from viewModel.findCity
         closeVirtualKeyboard()
-        if (binding.textFieldInput.text.toString().isBlank()) {
+        if (binding.textFieldInput.text.isNullOrEmpty()) {
             viewModel.setAppUiState(MainViewModel.AppUiStates.EMPTY_CITY_TEXT_FIELD)
             viewModel.setNormalAppUiState()
         } else viewModel.checkNetworkFindCity(binding.textFieldInput.text.toString())
