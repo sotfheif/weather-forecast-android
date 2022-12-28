@@ -79,7 +79,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val appUiState: LiveData<AppUiStates> get() = _appUiState
 
     enum class AppUiStates {
-        NORMAL, WAITING_GEO, WAITING_CITY_SEARCH, WAITING_FORECAST_RESPONSE,
+        NORMAL, /*WAITING_GEO, WAITING_CITY_SEARCH, WAITING_FORECAST_RESPONSE,/*using boolean work flags to prevent parallel func exec instead of these*/*/
         GEO_PERM_REQUIRED, GEO_PERM_RATIONALE, NO_GEO, GEO_DETECT_FAILED, NO_INTERNET,
         CONNECTION_TIMEOUT, CITY_NOT_FOUND, UNEXPECTED_MISTAKE, GO_TO_CITY_FRAGMENT,
         EMPTY_CITY_TEXT_FIELD, CHECK_LOC_PERM, LAT_OR_LONG_NULL/*TODO remove in release. debug value*/
@@ -199,7 +199,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _forecastStatusImageMainFragment.value = b
     }
 
-    private fun setCitySpinnerVisibilityMainFragment(b: Boolean) { //replaced by manually setting view.visibility in cityframent
+    fun setCitySpinnerVisibilityMainFragment(b: Boolean) { //replaced by manually setting view.visibility in cityframent
         _cityStatusImageMainFragment.value = b
     }
 
@@ -229,9 +229,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     suspend fun findCity(query: String) {
-        var foundAnyCities = Pair(false, Constants.emptyException)
         resetForecastResult()
-        foundAnyCities = getCitiesByName(query)
+        val foundAnyCities = getCitiesByName(query)
         if (foundAnyCities.first) {
             _appUiState.value = AppUiStates.GO_TO_CITY_FRAGMENT/*this@MainFragment.findNavController().navigate(
                     MainFragmentDirections.actionMainFragmentToCityFragment()

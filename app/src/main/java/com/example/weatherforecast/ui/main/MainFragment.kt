@@ -654,7 +654,7 @@ class MainFragment : Fragment() {
     private fun onSelectCityButtonClicked() {
         //if (viewModel.selectCityButtonWork) return // moved this into beginning of viewModel.checkknetworkfindcity. or move here setting work to true from viewModel.findCity
         closeVirtualKeyboard()
-        if (binding.textFieldInput.text.isNullOrEmpty()) {
+        if (binding.textFieldInput.text.isNullOrBlank()) {
             viewModel.setAppUiState(MainViewModel.AppUiStates.EMPTY_CITY_TEXT_FIELD)
             viewModel.setNormalAppUiState()
         } else viewModel.checkNetworkFindCity(binding.textFieldInput.text.toString())
