@@ -1,4 +1,4 @@
-package com.example.weatherforecast.ui.main
+package com.github.sotfheif.weatherforecast.ui.main
 
 import android.Manifest
 import android.content.Context
@@ -19,9 +19,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.example.weatherforecast.R
-import com.example.weatherforecast.data.DayForecast
-import com.example.weatherforecast.databinding.FragmentMainBinding
+import com.github.sotfheif.weatherforecast.R
+import com.github.sotfheif.weatherforecast.data.DayForecast
+import com.github.sotfheif.weatherforecast.databinding.FragmentMainBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import java.util.*

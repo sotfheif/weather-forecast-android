@@ -1,4 +1,4 @@
-package com.example.weatherforecast.network
+package com.github.sotfheif.weatherforecast.network
 
 data class DailyUnits (
     val time: String = "iso8601",

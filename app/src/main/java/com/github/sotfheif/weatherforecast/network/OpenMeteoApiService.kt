@@ -1,6 +1,6 @@
-package com.example.weatherforecast.network
+package com.github.sotfheif.weatherforecast.network
 
-import com.example.weatherforecast.Constants
+import com.github.sotfheif.weatherforecast.Constants
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient

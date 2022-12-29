@@ -1,4 +1,4 @@
-package com.example.weatherforecast.ui
+package com.github.sotfheif.weatherforecast.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,9 +8,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.weatherforecast.R
-import com.example.weatherforecast.databinding.FragmentCityListBinding
-import com.example.weatherforecast.ui.main.MainViewModel
+import com.github.sotfheif.weatherforecast.R
+import com.github.sotfheif.weatherforecast.databinding.FragmentCityListBinding
+import com.github.sotfheif.weatherforecast.ui.main.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 

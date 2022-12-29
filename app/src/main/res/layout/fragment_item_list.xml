@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/recycler_view"
-    android:name="com.example.weatherforecast.ui.ItemFragment"
+    android:name="com.github.sotfheif.weatherforecast.ui.ItemFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginLeft="16dp"

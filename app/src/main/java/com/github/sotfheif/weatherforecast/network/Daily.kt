@@ -1,4 +1,4 @@
-package com.example.weatherforecast.network
+package com.github.sotfheif.weatherforecast.network
 
 data class Daily (
     val time: List<String> = listOf(),

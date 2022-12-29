@@ -1,4 +1,4 @@
-package com.example.weatherforecast.ui.main
+package com.github.sotfheif.weatherforecast.ui.main
 //TODO CHECK thar forecast livedata for UI is set to null in the beginning of some funs
 
 import android.annotation.SuppressLint
@@ -13,9 +13,9 @@ import android.os.Build
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.*
-import com.example.weatherforecast.Constants
-import com.example.weatherforecast.data.DayForecast
-import com.example.weatherforecast.network.*
+import com.github.sotfheif.weatherforecast.Constants
+import com.github.sotfheif.weatherforecast.data.DayForecast
+import com.github.sotfheif.weatherforecast.network.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive

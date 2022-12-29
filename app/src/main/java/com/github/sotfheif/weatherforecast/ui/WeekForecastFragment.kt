@@ -1,4 +1,4 @@
-package com.example.weatherforecast.ui
+package com.github.sotfheif.weatherforecast.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,10 +7,10 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.weatherforecast.R
-import com.example.weatherforecast.data.DayForecast
-import com.example.weatherforecast.databinding.FragmentItemListBinding
-import com.example.weatherforecast.ui.main.MainViewModel
+import com.github.sotfheif.weatherforecast.R
+import com.github.sotfheif.weatherforecast.data.DayForecast
+import com.github.sotfheif.weatherforecast.databinding.FragmentItemListBinding
+import com.github.sotfheif.weatherforecast.ui.main.MainViewModel
 
 class WeekForecastFragment : Fragment() {
     private var _binding: FragmentItemListBinding? = null

@@ -1,12 +1,12 @@
-package com.example.weatherforecast.ui
+package com.github.sotfheif.weatherforecast.ui
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.weatherforecast.databinding.FragmentCityBinding
-import com.example.weatherforecast.network.City
+import com.github.sotfheif.weatherforecast.databinding.FragmentCityBinding
+import com.github.sotfheif.weatherforecast.network.City
 
 
 class  MyCityListAdapter(private val onItemClicked: (City) -> Unit) :

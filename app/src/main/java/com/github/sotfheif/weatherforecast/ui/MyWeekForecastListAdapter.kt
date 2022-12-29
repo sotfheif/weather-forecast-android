@@ -1,13 +1,13 @@
-package com.example.weatherforecast.ui
+package com.github.sotfheif.weatherforecast.ui
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.weatherforecast.R
-import com.example.weatherforecast.data.DayForecast
-import com.example.weatherforecast.databinding.FragmentItemBinding
+import com.github.sotfheif.weatherforecast.R
+import com.github.sotfheif.weatherforecast.data.DayForecast
+import com.github.sotfheif.weatherforecast.databinding.FragmentItemBinding
 import java.text.SimpleDateFormat
 import java.util.*
 

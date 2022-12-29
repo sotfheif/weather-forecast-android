@@ -1,4 +1,4 @@
-package com.example.weatherforecast.data
+package com.github.sotfheif.weatherforecast.data
 
 data class DayForecast (
     val id: Int? = null,

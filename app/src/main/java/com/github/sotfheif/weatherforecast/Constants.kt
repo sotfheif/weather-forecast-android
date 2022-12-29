@@ -1,4 +1,4 @@
-package com.example.weatherforecast
+package com.github.sotfheif.weatherforecast
 
 object Constants {
     const val MAX_LOC_AGE = 1000 * 60 * 5

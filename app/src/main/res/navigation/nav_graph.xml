@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="com.example.weatherforecast.ui.main.MainFragment"
+        android:name="com.github.sotfheif.weatherforecast.ui.main.MainFragment"
         android:label="@string/main_fragment_navbar"
         tools:layout="@layout/fragment_main">
         <action
@@ -21,12 +21,12 @@
     </fragment>
     <fragment
         android:id="@+id/itemFragment"
-        android:name="com.example.weatherforecast.ui.WeekForecastFragment"
+        android:name="com.github.sotfheif.weatherforecast.ui.WeekForecastFragment"
         android:label="@string/week_forecast_nav_bar"
         tools:layout="@layout/fragment_item_list" />
     <fragment
         android:id="@+id/cityFragment"
-        android:name="com.example.weatherforecast.ui.CityFragment"
+        android:name="com.github.sotfheif.weatherforecast.ui.CityFragment"
         android:label="@string/city_search_nav_bar"
         tools:layout="@layout/fragment_city_list">
         <action

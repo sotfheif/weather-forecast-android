@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.weatherforecast'
+    namespace 'com.github.sotfheif.weatherforecast'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.example.weatherforecast"
+        applicationId "com.github.sotfheif.weatherforecast"
         minSdk 21
         targetSdk 33
         versionCode 1
