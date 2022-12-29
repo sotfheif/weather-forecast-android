@@ -40,9 +40,12 @@ class MainFragment : Fragment() {
     //TODO BUG sometimes forecast won't appear in ui(after spinner dissappeared). mb is necessary for internet speed to be low. as one of solutions can  after clicking show forecst once more it appears
     //TODO BUG when clicked showforecast fast successively, spinner may continue being visible after no_internet dialog, and then (long after the dialog closed) dissappear without  anything shown
     //TODO check setSpinnerVisibility() placement (in code).
+    //TODO later use fusedlocationprovider from google on devices where available
+    //TODO later add possibility to save location (maaybee just latest detected current location will do), so that you can later use that saved location
     //TODO later review architecture
     //TODO later download web service's location (cities) db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
     //TODO later in search field (before any chars entered) show previous location search queries(or selected results(locations)?
+    //TODO later send notifications about bad weather? maybe even set human speech as notif sound (like "rain today")
     /*
     companion object {
         fun newInstance() = MainFragment()
