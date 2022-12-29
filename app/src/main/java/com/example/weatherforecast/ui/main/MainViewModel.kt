@@ -25,7 +25,7 @@ import java.util.*
 import kotlin.math.round
 import kotlin.math.roundToInt
 
-private const val TAG = "MainViewModel"
+//private const val TAG = "MainViewModel"//DEBUG FEATURE
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val context = application
@@ -81,8 +81,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     enum class AppUiStates {
         NORMAL, /*WAITING_GEO, WAITING_CITY_SEARCH, WAITING_FORECAST_RESPONSE,/*using boolean work flags to prevent parallel func exec instead of these*/*/
         GEO_PERM_REQUIRED, GEO_PERM_RATIONALE, NO_GEO, GEO_DETECT_FAILED, NO_INTERNET,
-        CONNECTION_TIMEOUT, CITY_NOT_FOUND, UNEXPECTED_MISTAKE, GO_TO_CITY_FRAGMENT,
-        EMPTY_CITY_TEXT_FIELD, CHECK_LOC_PERM, LAT_OR_LONG_NULL/*TODO remove in release. debug value*/
+        CONNECTION_TIMEOUT, CITY_NOT_FOUND, /*UNEXPECTED_MISTAKE, /*DEBUG FEATURE*/*/ GO_TO_CITY_FRAGMENT,
+        EMPTY_CITY_TEXT_FIELD, CHECK_LOC_PERM, API_ERROR /*, LAT_OR_LONG_NULL/*DEBUG FEATURE*/*/
     }
 
     enum class GetLocationByGpsErrors {
@@ -112,7 +112,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     suspend fun getCitiesByName(query: String): Pair<Boolean, String> {
-        Log.d(TAG, "entered getcitiesbyname")
+        Log.d("MainViewModel", "entered getcitiesbyname")
         var listResult = CityResponse()
         var exception: String = Constants.emptyException
         val getCitiesJob = viewModelScope.launch {
@@ -125,7 +125,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } //finally {setSpinnerVisibilityCityFragment(false)}
         }
         getCitiesJob.join()
-        Log.d(TAG, "getcitiesbyname before return")
+        Log.d("MainViewModel", "getcitiesbyname before return")
         return if (listResult.results.isNotEmpty()) {
             _citySearchResult = listResult.results
             Pair(true, exception)
@@ -216,14 +216,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun setForecast(forecastResult: ForecastResponse) {
-        Log.d(TAG, "entered setForecast, forecastResult=$forecastResult")
+        Log.d("MainViewModel", "entered setForecast, forecastResult=$forecastResult")
         val weekForecast = handleForecastResponse(forecastResult)
         if (weekForecast[0].latitude != null) { //TODO mb replace this check with something more elegant
-            Log.d(TAG, "weekForecast[0].latitude != null")
+            Log.d("MainViewModel", "weekForecast[0].latitude != null")
             setWeekForecast(weekForecast)
         } else {
-            Log.d(TAG, "weekForecast[0].latitude == null")
-            _appUiState.value = AppUiStates.LAT_OR_LONG_NULL
+            Log.d("MainViewModel", "weekForecast[0].latitude == null")
+            _appUiState.value = AppUiStates.API_ERROR /*LAT_OR_LONG_NULL for debug*/
             resetWeekForecast()
         }
     }
@@ -288,13 +288,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             lastKnownLocationByNetwork =
                 locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         } catch (e: SecurityException) {
-            Log.d(TAG, "Security exception: $e")
+            Log.d("MainViewModel", "Security exception: $e")
             _appUiState.value = AppUiStates.GEO_PERM_REQUIRED
             //showGeoPermissionRequiredDialog()
             setForecastSpinnerVisibilityMainFragment(false)
             return
         } catch (e: Exception) {
-            Log.d(TAG, "Unexpected exception: ${e})")
+            Log.d("MainViewModel", "Unexpected exception: ${e})")
         }
         //getting latest known location (from gps or network)
         val latestKnownLoc =
@@ -307,7 +307,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             location = latestKnownLoc
         } else { //if no fresh enough location is present, detect location
             val (newLocation, error) = getLocationByGps(locationManager)
-            Log.d(TAG, "string after newLocation, error assignment")
+            Log.d("MainViewModel", "string after newLocation, error assignment")
             when (error) {//TODO mb replace returns/spinnervissets, or leave one
                 GetLocationByGpsErrors.GPS_IS_OFF -> {
                     setForecastSpinnerVisibilityMainFragment(false)
@@ -316,22 +316,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 GetLocationByGpsErrors.LOC_DETECTION_FAILED -> {
                     setForecastSpinnerVisibilityMainFragment(false)
-                    Log.d(TAG, "error=$error")
+                    Log.d("MainViewModel", "error=$error")
                     _appUiState.value =
                         AppUiStates.GEO_DETECT_FAILED //showFailedToDetectGeoDialog()
                     return
                 }
                 GetLocationByGpsErrors.NO_ERROR -> {
                     if (newLocation == null) {
-                        Log.d(TAG, "error=$error, newLocation == null")
+                        Log.d("MainViewModel", "error=$error, newLocation == null")
                         setForecastSpinnerVisibilityMainFragment(false)
-                        _appUiState.value = AppUiStates.UNEXPECTED_MISTAKE //showUnexpectedMistake()
-                        return //TODO change showUnexpectedMistake to showFailedToDetectGeo in release
+                        _appUiState.value =
+                            AppUiStates.GEO_DETECT_FAILED//AppUiStates.UNEXPECTED_MISTAKE
+                        return // showUnexpectedMistake in debug and showFailedToDetectGeo in release
                     }
                 }
                 GetLocationByGpsErrors.MISSING_PERMISSION -> {
                     setForecastSpinnerVisibilityMainFragment(false)
-                    Log.d(TAG, "error=$error")
+                    Log.d("MainViewModel", "error=$error")
                     _appUiState.value =
                         AppUiStates.GEO_PERM_REQUIRED //showGeoPermissionRequiredDialog()
                     return
@@ -341,7 +342,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         val exception = setLocationGetForecast(location)
         if (exception != Constants.emptyException) {
-            Log.d(TAG, exception)
+            Log.d("MainViewModel", exception)
             _appUiState.value = AppUiStates.CONNECTION_TIMEOUT //showConnectionTimeoutDialog()
         }
         setForecastSpinnerVisibilityMainFragment(false)
@@ -386,11 +387,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         }
                     } else {
                         _appUiState.value =
-                            AppUiStates.LAT_OR_LONG_NULL/*showLatOrLongNullDialog()*/
+                            AppUiStates.API_ERROR /*LAT_OR_LONG_NULL for debug*/
                     }
                 }
             } catch (e: Exception) {
-                Log.d(TAG, "$e")
+                Log.d("MainViewModel", "$e")
             } finally {
                 setShowForecastButtonWork(false)
             }
@@ -480,7 +481,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     //@SuppressLint("MissingPermission")
     suspend fun getLocationByGps(locationManager: LocationManager): Pair<Location?, GetLocationByGpsErrors> {
-        Log.d(TAG, "entered getLocationByGps")
+        Log.d("MainViewModel", "entered getLocationByGps")
         var error = GetLocationByGpsErrors.NO_ERROR
         var timeoutJobCancelReason = TimeoutJobCancelReasons.NOT_CANCELLED // mb unnecessary
         var location: Location? = null
@@ -492,21 +493,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 override fun onLocationChanged(newLocation: Location) {
                     locationManager.removeUpdates(this)
                     Log.d(
-                        TAG,
+                        "MainViewModel",
                         "entered onLocationChanged, error=$error, newLocation.time=${newLocation.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
                     )
                     Log.d(
-                        TAG,
+                        "MainViewModel",
                         "onlocationchanged, string before location assign. newLocation =$newLocation, location=$location, error=$error, newLocation.time=${newLocation.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
                     )
                     location = newLocation
                     Log.d(
-                        TAG,
+                        "MainViewModel",
                         "onlocationchanged, string after location assign. newLocation =$newLocation, location=$location, error=$error, location.time=${location?.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
                     )
                     timeoutJobCancelReason = TimeoutJobCancelReasons.ON_LOC_CHANGED
                     Log.d(
-                        TAG,
+                        "MainViewModel",
                         "onlocchanged, string before timeoutjob.cancel, timeOutJob=$timeOutJob"
                     )
                     timeOutJob?.cancel()
@@ -516,10 +517,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     super.onProviderDisabled(provider)
                     locationManager.removeUpdates(this)
 
-                    Log.d(TAG, "entered onproviderdisabled, error=$error")
+                    Log.d("MainViewModel", "entered onproviderdisabled, error=$error")
                     timeoutJobCancelReason = TimeoutJobCancelReasons.ON_PROVIDER_DISABLED
                     Log.d(
-                        TAG,
+                        "MainViewModel",
                         "onproviderdisabled, string before timeoutjob.cancel, timeOutJob=$timeOutJob"
                     )
                     //error = GetLocationByGpsErrors.GPS_IS_OFF
@@ -530,7 +531,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (locationManager
                 .isProviderEnabled(LocationManager.GPS_PROVIDER)
         ) {
-            Log.d(TAG, "string before requesting loc updates, error=$error")
+            Log.d("MainViewModel", "string before requesting loc updates, error=$error")
             try {
                 locationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
@@ -539,18 +540,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     gpsLocationListener
                 )
             } catch (e: SecurityException) {
-                Log.d(TAG, "Security exception: $e")
+                Log.d("MainViewModel", "Security exception: $e")
                 return Pair(null, GetLocationByGpsErrors.MISSING_PERMISSION)
             } catch (e: Exception) {
-                Log.d(TAG, "Unexpected exception: ${e})")
+                Log.d("MainViewModel", "Unexpected exception: ${e})")
             }
-            Log.d(TAG, "string before launching waiter, error=$error")
+            Log.d("MainViewModel", "string before launching waiter, error=$error")
             timeOutJob =
                 viewModelScope.launch {//TODO mb change to out of the box withTimeout()
                     repeat(Constants.DETECT_GEO_TIMEOUT_CHECK_TIMES) {
                         if (isActive) {
                             delay(Constants.DETECT_GEO_TIMEOUT_CHECK_PERIOD_IN_MILLIS)
-                            Log.d(TAG, "string in waiter, iter $it, error=$error")
+                            Log.d("MainViewModel", "string in waiter, iter $it, error=$error")
                         } else {
                             return@launch
                         }
@@ -558,17 +559,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     locationManager.removeUpdates(gpsLocationListener)
                 }
             Log.d(
-                TAG,
+                "MainViewModel",
                 "string after launching waiter, before timeoutjob.join, error=$error"
             )
             timeOutJob.join()
-            Log.d(TAG, "string after timeoutjob.join, error=$error")
+            Log.d("MainViewModel", "string after timeoutjob.join, error=$error")
             when (timeoutJobCancelReason) {
                 TimeoutJobCancelReasons.ON_LOC_CHANGED -> {
-                    Log.d(TAG, "entered timeoutJobCancelReasons.ON_LOC_CHANGED ->")
+                    Log.d("MainViewModel", "entered timeoutJobCancelReasons.ON_LOC_CHANGED ->")
                 }
                 TimeoutJobCancelReasons.ON_PROVIDER_DISABLED -> {
-                    Log.d(TAG, "entered timeoutJobCancelReasons.ON_PROVIDER_DISABLED ->")
+                    Log.d(
+                        "MainViewModel",
+                        "entered timeoutJobCancelReasons.ON_PROVIDER_DISABLED ->"
+                    )
                     error = GetLocationByGpsErrors.GPS_IS_OFF
                 }
                 TimeoutJobCancelReasons.NOT_CANCELLED -> {//reached timeout
@@ -577,7 +581,7 @@ location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) ?:
 locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
  */
                     Log.d(
-                        TAG,
+                        "MainViewModel",
                         "location=$location, string before when (abt location), error=$error)"
                     )
                     error = GetLocationByGpsErrors.LOC_DETECTION_FAILED
@@ -587,7 +591,7 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
             error = GetLocationByGpsErrors.GPS_IS_OFF
 //showNoGeoDialog()
         }
-        Log.d(TAG, "getLocationByGps penultimate string, error=$error")
+        Log.d("MainViewModel", "getLocationByGps penultimate string, error=$error")
         return Pair(location, error)
     }
 }

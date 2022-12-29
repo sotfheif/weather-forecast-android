@@ -19,7 +19,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/textFieldInput"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColorHint="#616161" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -66,7 +67,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/select_city_button"
         app:layout_constraintTop_toBottomOf="@id/textField"
-        tools:text="Selected location: Rome" />
+        tools:text="Selected: Rome" />
 
     <Button
         style="?attr/materialButtonOutlinedStyle"
@@ -84,6 +85,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/selectedCityTextView"
+        android:layout_marginTop="8dp"
         app:layout_constraintStart_toEndOf="@id/select_city_button"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginStart="20dp"

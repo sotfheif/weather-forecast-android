@@ -26,7 +26,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import java.util.*
 
-private const val TAG = "MainFragment"
+//private const val TAG = "MainFragment" //DEBUG FEATURE
 class MainFragment : Fragment() {
     //TODO BEFORE RELEASE: remove/replace unexpectedmistake dialog and all code commented as debug feature, replace connection timeout with connection error.
     //TODO mb replace forecast loading spinner in ui, make it similar to city spinner
@@ -58,7 +58,7 @@ class MainFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate")
+        Log.d("MainFragment", "onCreate")
         viewModel.requestLocPermissionLauncher =
             registerForActivityResult(
                 ActivityResultContracts.RequestPermission()
@@ -83,7 +83,7 @@ class MainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        Log.d(TAG, "onCreateView")
+        Log.d("MainFragment", "onCreateView")
         binding = FragmentMainBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -91,12 +91,12 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d(TAG, "onViewCreated")
+        Log.d("MainFragment", "onViewCreated")
         binding.showForecastButton.setOnClickListener {
-        viewModel.onShowForecastButtonClicked() // was fragment's onShowForecastButtonClicked()
+            viewModel.onShowForecastButtonClicked() // was fragment's onShowForecastButtonClicked()
         }
         binding.currentLocationButton.setOnClickListener {
-            Log.d(TAG, "CurrentLocationButton onclicklistener")
+            Log.d("MainFragment", "CurrentLocationButton onclicklistener")
             closeVirtualKeyboard()
             if (viewModel.selectedCity == viewModel.emptyCity) {
                 return@setOnClickListener
@@ -112,7 +112,7 @@ class MainFragment : Fragment() {
                     getString(R.string.selected_city_text_current_location)
                 )
             Log.d(
-                TAG,
+                "MainFragment",
                 "set selectedCityTextView.text = ${getString(R.string.selected_city_text_current_location)}"
             )
         }
@@ -152,9 +152,10 @@ class MainFragment : Fragment() {
                     viewModel.requestLocPermissionLauncher
                 )
                 MainViewModel.AppUiStates.NO_GEO -> showNoGeoDialog()
-                MainViewModel.AppUiStates.NO_INTERNET -> showNoInternetDialog()
-                MainViewModel.AppUiStates.CONNECTION_TIMEOUT -> showConnectionTimeoutDialog()
-                MainViewModel.AppUiStates.UNEXPECTED_MISTAKE -> showUnexpectedMistake()
+                MainViewModel.AppUiStates.NO_INTERNET,
+                MainViewModel.AppUiStates.CONNECTION_TIMEOUT -> showNoInternetDialog()
+                //MainViewModel.AppUiStates.CONNECTION_TIMEOUT -> showConnectionTimeoutDialog() united with connectionerrordialog for simplicity
+                //MainViewModel.AppUiStates.UNEXPECTED_MISTAKE -> showUnexpectedMistake() //DEBUG FEATURE
                 MainViewModel.AppUiStates.CITY_NOT_FOUND -> showCityNotFoundDialog()
                 MainViewModel.AppUiStates.GO_TO_CITY_FRAGMENT ->// try {
                     this@MainFragment
@@ -162,13 +163,14 @@ class MainFragment : Fragment() {
                             MainFragmentDirections.actionMainFragmentToCityFragment()
                         )
                 //}catch (_: Throwable){ }
-                MainViewModel.AppUiStates.LAT_OR_LONG_NULL -> showLatOrLongNullDialog()
+                //MainViewModel.AppUiStates.LAT_OR_LONG_NULL -> showLatOrLongNullDialog()// DEBUG FEATURE
                 MainViewModel.AppUiStates.EMPTY_CITY_TEXT_FIELD -> Snackbar.make(
                     binding.showForecastButton,
                     getString(R.string.enter_city_snackbar),
                     Snackbar.LENGTH_SHORT
                 ).show()
                 MainViewModel.AppUiStates.CHECK_LOC_PERM -> checkPermDetectLoc(viewModel.requestLocPermissionLauncher)
+                MainViewModel.AppUiStates.API_ERROR -> showApiErrorDialog()
                 else -> {}//"w: enum arg can be null in java
             }
         }
@@ -256,42 +258,42 @@ class MainFragment : Fragment() {
     /*
         override fun onSaveInstanceState(outState: Bundle) {
             super.onSaveInstanceState(outState)
-            Log.d(TAG, "onSaveInstanceState")
+            Log.d("MainFragment", "onSaveInstanceState")
         }
 
         override fun onStart() {
             super.onStart()
-            Log.d(TAG, "onStart")
+            Log.d("MainFragment", "onStart")
         }
 
         override fun onPause() {
             super.onPause()
-            Log.d(TAG, "onPause")
+            Log.d("MainFragment", "onPause")
         }
 
         override fun onResume() {
             super.onResume()
-            Log.d(TAG, "onResume")
+            Log.d("MainFragment", "onResume")
         }
 
         override fun onStop() {
             super.onStop()
-            Log.d(TAG, "onStop")
+            Log.d("MainFragment", "onStop")
         }
 
         override fun onDestroy() {
             super.onDestroy()
-            Log.d(TAG, "onDestroy")
+            Log.d("MainFragment", "onDestroy")
         }
 
         override fun onDestroyView() {
             super.onDestroyView()
-            Log.d(TAG, "onDestroyView")
+            Log.d("MainFragment", "onDestroyView")
         }
     */
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
-        Log.d(TAG, "onViewStateRestored")
+        Log.d("MainFragment", "onViewStateRestored")
         //prepDayForecastUiText()
         viewModel.selectedCity.let {
             binding.selectedCityTextView.text = if (it == viewModel.emptyCity)
@@ -344,16 +346,17 @@ class MainFragment : Fragment() {
             .show()
     }
 
-    private fun showUnexpectedMistake() {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(getString(R.string.unexpected_mistake_text))
-            .setMessage(getString(R.string.unexpected_mistake_text))
-            .setCancelable(true)
-            .setNegativeButton(R.string.no_geo_dialog_button) { _, _ -> }
-            .setOnDismissListener { viewModel.setNormalAppUiState() }
-            .show()
-    }
-
+    /*
+        private fun showUnexpectedMistake() {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(getString(R.string.unexpected_mistake_text))
+                .setMessage(getString(R.string.unexpected_mistake_text))
+                .setCancelable(true)
+                .setNegativeButton(R.string.no_geo_dialog_button) { _, _ -> }
+                .setOnDismissListener { viewModel.setNormalAppUiState() }
+                .show()
+        }
+    */
     private fun showNoInternetDialog() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.no_internet_dialog_title))
@@ -364,6 +367,16 @@ class MainFragment : Fragment() {
             .show()
     }
 
+    private fun showApiErrorDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.api_error_dialog_title))
+            .setMessage(getString(R.string.api_error_dialog_text))
+            .setCancelable(true)
+            .setNegativeButton(R.string.api_error_button) { _, _ -> }
+            .setOnDismissListener { viewModel.setNormalAppUiState() }
+            .show()
+    }
+/* // using only connectionErrorDialog for simplicity
     private fun showConnectionTimeoutDialog() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.connection_timeout_dialog_title))
@@ -373,8 +386,9 @@ class MainFragment : Fragment() {
             .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
     }
-
-    private fun showLatOrLongNullDialog() { //TODO remove/replace in release build. DEBUG FEATURE
+*/
+/*
+    private fun showLatOrLongNullDialog() { //DEBUG FEATURE
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Latitude or longitude null")
             .setMessage("After getting location latitude or longitude appear to be null")
@@ -383,6 +397,7 @@ class MainFragment : Fragment() {
             .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
     }
+*/
 
     private fun showGeoPermissionRationaleDialog(activityResultLauncher: ActivityResultLauncher<String>) {
         MaterialAlertDialogBuilder(requireContext())
@@ -486,11 +501,11 @@ class MainFragment : Fragment() {
             lastKnownLocationByNetwork =
                 locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         } catch (e: SecurityException) {
-            Log.d(TAG, "Security exception: $e")
+            Log.d("MainFragment", "Security exception: $e")
             showGeoPermissionRequiredDialog()
             return
         } catch (e: Exception) {
-            Log.d(TAG, "Unexpected exception: ${e})")
+            Log.d("MainFragment", "Unexpected exception: ${e})")
         }
         //getting latest known location (from gps or network)
         val latestKnownLoc =
@@ -503,7 +518,7 @@ class MainFragment : Fragment() {
             location = latestKnownLoc
         } else { //if no fresh enough location is present, detect location
             val (newLocation, error) = getLocationByGps(locationManager)
-            Log.d(TAG, "string after newLocation, error assignment")
+            Log.d("MainFragment", "string after newLocation, error assignment")
             when (error) {
                 GetLocationByGpsErrors.GPS_IS_OFF -> {
                     viewModel.setSpinnerVisibilityMainFragment(false)
@@ -511,18 +526,18 @@ class MainFragment : Fragment() {
                 }
                 GetLocationByGpsErrors.LOC_DETECTION_FAILED -> {
                     viewModel.setSpinnerVisibilityMainFragment(false)
-                    Log.d(TAG, "error=$error")
+                    Log.d("MainFragment", "error=$error")
                     showFailedToDetectGeoDialog(); return
                 }
                 GetLocationByGpsErrors.NO_ERROR -> {
                     if (newLocation == null) {
-                        Log.d(TAG, "error=$error, newLocation == null")
+                        Log.d("MainFragment", "error=$error, newLocation == null")
                         viewModel.setSpinnerVisibilityMainFragment(false)
                         showUnexpectedMistake(); return
                     }
                 }
                 GetLocationByGpsErrors.MISSING_PERMISSION -> {
-                    Log.d(TAG, "error=$error")
+                    Log.d("MainFragment", "error=$error")
                     showGeoPermissionRequiredDialog()
                     return
                 }
@@ -531,7 +546,7 @@ class MainFragment : Fragment() {
         }
         val exception = setLocationGetForecast(location)
         if (exception != Constants.emptyException) {
-            Log.d(TAG, exception)
+            Log.d("MainFragment", exception)
             showConnectionTimeoutDialog()
         }
         //viewModel.setSpinnerVisibilityMainFragment(false)
@@ -580,13 +595,13 @@ class MainFragment : Fragment() {
 */
 /*
     private fun setForecast(forecastResult: ForecastResponse) {
-        Log.d(TAG, "entered setForecast, forecastResult=$forecastResult")
+        Log.d("MainFragment", "entered setForecast, forecastResult=$forecastResult")
         val weekForecast = handleForecastResponse(forecastResult)
         if (weekForecast[0].latitude != null) {
-            Log.d(TAG, "weekForecast[0].latitude != null")
+            Log.d("MainFragment", "weekForecast[0].latitude != null")
             viewModel.setWeekForecast(weekForecast)
         } else {
-            Log.d(TAG, "weekForecast[0].latitude == null")
+            Log.d("MainFragment", "weekForecast[0].latitude == null")
             viewModel.resetWeekForecast()
         }
     }
