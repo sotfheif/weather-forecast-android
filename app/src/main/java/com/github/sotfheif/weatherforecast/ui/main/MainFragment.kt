@@ -29,6 +29,8 @@ import java.util.*
 //private const val TAG = "MainFragment" //DEBUG FEATURE
 class MainFragment : Fragment() {
     //TODO BEFORE RELEASE: remove/replace unexpectedmistake dialog and all code commented as debug feature, replace connection timeout with connection error.
+    //TODO make possible typung location name in other language.
+    //TODO mb show pressure in other units like mB or mm Hg
     //TODO mb replace forecast loading spinner in ui, make it similar to city spinner
     //TODO OK FOR NOW after app launch first button click (showForecast or selectCity with textinput no blank) is laggy, probably due to viewmodel lazy initialization
     //TODO BUG mb resolved. when shouldshowrationale is true if showForecastButton is clicked consequently fast enough, several rationaleDialogs appear
@@ -218,8 +220,12 @@ class MainFragment : Fragment() {
         {
             if (it) {
                 binding.statusImageForecast.visibility = View.VISIBLE
+                binding.selectCityButton.isEnabled = false
+                binding.currentLocationButton.isEnabled = false
             } else {
                 binding.statusImageForecast.visibility = View.GONE
+                binding.selectCityButton.isEnabled = true
+                binding.currentLocationButton.isEnabled = true
             }
         }
         viewModel.cityStatusImageMainFragment.observe(this.viewLifecycleOwner) {
