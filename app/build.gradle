@@ -5,10 +5,21 @@ plugins {
     id 'kotlin-kapt'
 }
 
+def keystorePropertiesFile = file("..\\..\\keystore.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
 android {
+    signingConfigs {
+        config {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+        }
+    }
     namespace 'com.github.sotfheif.weatherforecast'
     compileSdk 33
-
     defaultConfig {
         applicationId "com.github.sotfheif.weatherforecast"
         minSdk 21
@@ -23,6 +34,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
     }
     compileOptions {
