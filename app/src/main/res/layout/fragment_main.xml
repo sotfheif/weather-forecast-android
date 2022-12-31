@@ -10,16 +10,19 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textField"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="@string/city_input_hint"
         app:errorEnabled="true"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/textFieldInput"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textSize="18sp" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -44,7 +47,9 @@
         android:text="@string/select_city_button"
         app:layout_constraintTop_toBottomOf="@id/textField"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp" />
 
     <Button
         style="?attr/materialButtonOutlinedStyle"
@@ -54,16 +59,22 @@
         android:text="@string/selected_city_text_current_location"
         app:layout_constraintTop_toBottomOf="@id/select_city_button"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp" />
 
     <TextView
         android:id="@+id/selectedCityTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/current_location_button"
-        tools:text="Selected: Rome" />
+        tools:text="Selected: Rome"
+        android:textColor="?android:textColorPrimary" />
 
     <Button
         style="?attr/materialButtonOutlinedStyle"
@@ -74,29 +85,36 @@
         app:layout_constraintTop_toBottomOf="@id/selectedCityTextView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        />
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp" />
+
     <TextView
         android:id="@+id/todayForecastTextView"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        tools:text=""
-        app:layout_constraintTop_toBottomOf="@id/showForecastButton"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@id/weekForecastButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/weekForecastButton" />
+        app:layout_constraintTop_toBottomOf="@id/showForecastButton"
+        tools:text="Weather today"
+        android:textColor="?android:textColorPrimary" />
 
     <ImageView
         android:id="@+id/status_image_forecast"
         android:layout_width="117dp"
         android:layout_height="93dp"
+        android:contentDescription="@string/status_image_forecast_main_fragm_content_desc"
         android:src="@drawable/loading_animation"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/weekForecastButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/showForecastButton"
-        android:contentDescription="@string/status_image_forecast_main_fragm_content_desc"
+        app:layout_constraintBottom_toBottomOf="@id/todayForecastTextView"
+        app:layout_constraintEnd_toEndOf="@id/todayForecastTextView"
+        app:layout_constraintStart_toStartOf="@id/todayForecastTextView"
+        app:layout_constraintTop_toTopOf="@id/todayForecastTextView"
         tools:visibility="visible" />
+
     <Button
         style="?attr/materialButtonOutlinedStyle"
         android:id="@+id/weekForecastButton"
@@ -107,6 +125,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        />
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

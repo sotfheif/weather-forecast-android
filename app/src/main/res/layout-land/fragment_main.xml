@@ -10,17 +10,20 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textField"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="@string/city_input_hint"
         app:errorEnabled="true"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/textFieldInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColorHint="#616161" />
+            android:textColorHint="#616161"
+            android:textSize="18sp" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -33,7 +36,8 @@
         app:layout_constraintTop_toBottomOf="@id/textField"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintWidth_default="percent"
-        app:layout_constraintWidth_percent=".5" />
+        app:layout_constraintWidth_percent=".5"
+        android:layout_marginStart="4dp" />
 
     <ImageView
         android:id="@+id/status_image_city"
@@ -57,17 +61,21 @@
         app:layout_constraintTop_toBottomOf="@id/select_city_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintWidth_default="percent"
-        app:layout_constraintWidth_percent=".5" />
+        app:layout_constraintWidth_percent=".5"
+        android:layout_marginStart="4dp" />
 
     <TextView
         android:id="@+id/selectedCityTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/select_city_button"
         app:layout_constraintTop_toBottomOf="@id/textField"
-        tools:text="Selected: Rome" />
+        tools:text="Selected: Rome"
+        android:textColor="?android:textColorPrimary"
+        android:layout_marginEnd="4dp" />
 
     <Button
         style="?attr/materialButtonOutlinedStyle"
@@ -78,18 +86,22 @@
         app:layout_constraintTop_toBottomOf="@id/current_location_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintWidth_default="percent"
-        app:layout_constraintWidth_percent=".5" />
+        app:layout_constraintWidth_percent=".5"
+        android:layout_marginStart="4dp" />
 
     <TextView
         android:id="@+id/todayForecastTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/selectedCityTextView"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toEndOf="@id/select_city_button"
-        app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginStart="20dp"
-        tools:text="Weather today" />
+        android:layout_marginTop="8dp"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/select_city_button"
+        app:layout_constraintTop_toBottomOf="@id/selectedCityTextView"
+        tools:text="Weather today"
+        android:textColor="?android:textColorPrimary"
+        android:layout_marginEnd="4dp" />
 
     <ImageView
         android:id="@+id/status_image_forecast"
@@ -113,6 +125,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintWidth_default="percent"
-        app:layout_constraintWidth_percent=".5" />
+        app:layout_constraintWidth_percent=".5"
+        android:layout_marginStart="4dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
