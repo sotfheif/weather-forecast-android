@@ -46,6 +46,7 @@ class MainFragment : Fragment() {
     //TODO later use fusedlocationprovider from google on devices where available
     //TODO later add possibility to save location (maaybee just latest detected current location will do), so that you can later use that saved location
     //TODO later review architecture
+    //TODO later replace "current location" in selected city text view with detected location name
     //TODO later download web service's location (cities) db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
     //TODO later in search field (before any chars entered) show previous location search queries(or selected results(locations)?
     //TODO later send notifications about bad weather? maybe even set human speech as notif sound (like "rain today")
