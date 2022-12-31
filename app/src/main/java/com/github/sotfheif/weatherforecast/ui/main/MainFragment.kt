@@ -7,7 +7,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
+//import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -60,7 +60,7 @@ class MainFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("MainFragment", "onCreate")
+        //Log.d("MainFragment", "onCreate")
         viewModel.requestLocPermissionLauncher =
             registerForActivityResult(
                 ActivityResultContracts.RequestPermission()
@@ -85,7 +85,7 @@ class MainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        Log.d("MainFragment", "onCreateView")
+        //Log.d("MainFragment", "onCreateView")
         binding = FragmentMainBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -93,12 +93,12 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d("MainFragment", "onViewCreated")
+        //Log.d("MainFragment", "onViewCreated")
         binding.showForecastButton.setOnClickListener {
             viewModel.onShowForecastButtonClicked() // was fragment's onShowForecastButtonClicked()
         }
         binding.currentLocationButton.setOnClickListener {
-            Log.d("MainFragment", "CurrentLocationButton onclicklistener")
+            //Log.d("MainFragment", "CurrentLocationButton onclicklistener")
             closeVirtualKeyboard()
             if (viewModel.selectedCity == viewModel.emptyCity) {
                 return@setOnClickListener
@@ -113,10 +113,7 @@ class MainFragment : Fragment() {
                     R.string.selected_location_text_prefix,
                     getString(R.string.selected_city_text_current_location)
                 )
-            Log.d(
-                "MainFragment",
-                "set selectedCityTextView.text = ${getString(R.string.selected_city_text_current_location)}"
-            )
+            //Log.d("MainFragment", "set selectedCityTextView.text = ${getString(R.string.selected_city_text_current_location)}")
         }
 
         binding.selectCityButton.setOnClickListener {
@@ -264,42 +261,42 @@ class MainFragment : Fragment() {
     /*
         override fun onSaveInstanceState(outState: Bundle) {
             super.onSaveInstanceState(outState)
-            Log.d("MainFragment", "onSaveInstanceState")
+            //Log.d("MainFragment", "onSaveInstanceState")
         }
 
         override fun onStart() {
             super.onStart()
-            Log.d("MainFragment", "onStart")
+            //Log.d("MainFragment", "onStart")
         }
 
         override fun onPause() {
             super.onPause()
-            Log.d("MainFragment", "onPause")
+            //Log.d("MainFragment", "onPause")
         }
 
         override fun onResume() {
             super.onResume()
-            Log.d("MainFragment", "onResume")
+            //Log.d("MainFragment", "onResume")
         }
 
         override fun onStop() {
             super.onStop()
-            Log.d("MainFragment", "onStop")
+            //Log.d("MainFragment", "onStop")
         }
 
         override fun onDestroy() {
             super.onDestroy()
-            Log.d("MainFragment", "onDestroy")
+            //Log.d("MainFragment", "onDestroy")
         }
 
         override fun onDestroyView() {
             super.onDestroyView()
-            Log.d("MainFragment", "onDestroyView")
+            //Log.d("MainFragment", "onDestroyView")
         }
     */
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
-        Log.d("MainFragment", "onViewStateRestored")
+        //Log.d("MainFragment", "onViewStateRestored")
         //prepDayForecastUiText()
         viewModel.selectedCity.let {
             binding.selectedCityTextView.text = if (it == viewModel.emptyCity)
@@ -507,11 +504,11 @@ class MainFragment : Fragment() {
             lastKnownLocationByNetwork =
                 locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         } catch (e: SecurityException) {
-            Log.d("MainFragment", "Security exception: $e")
+            //Log.d("MainFragment", "Security exception: $e")
             showGeoPermissionRequiredDialog()
             return
         } catch (e: Exception) {
-            Log.d("MainFragment", "Unexpected exception: ${e})")
+            //Log.d("MainFragment", "Unexpected exception: ${e})")
         }
         //getting latest known location (from gps or network)
         val latestKnownLoc =
@@ -524,7 +521,7 @@ class MainFragment : Fragment() {
             location = latestKnownLoc
         } else { //if no fresh enough location is present, detect location
             val (newLocation, error) = getLocationByGps(locationManager)
-            Log.d("MainFragment", "string after newLocation, error assignment")
+            //Log.d("MainFragment", "string after newLocation, error assignment")
             when (error) {
                 GetLocationByGpsErrors.GPS_IS_OFF -> {
                     viewModel.setSpinnerVisibilityMainFragment(false)
@@ -532,18 +529,18 @@ class MainFragment : Fragment() {
                 }
                 GetLocationByGpsErrors.LOC_DETECTION_FAILED -> {
                     viewModel.setSpinnerVisibilityMainFragment(false)
-                    Log.d("MainFragment", "error=$error")
+                    //Log.d("MainFragment", "error=$error")
                     showFailedToDetectGeoDialog(); return
                 }
                 GetLocationByGpsErrors.NO_ERROR -> {
                     if (newLocation == null) {
-                        Log.d("MainFragment", "error=$error, newLocation == null")
+                        //Log.d("MainFragment", "error=$error, newLocation == null")
                         viewModel.setSpinnerVisibilityMainFragment(false)
                         showUnexpectedMistake(); return
                     }
                 }
                 GetLocationByGpsErrors.MISSING_PERMISSION -> {
-                    Log.d("MainFragment", "error=$error")
+                    //Log.d("MainFragment", "error=$error")
                     showGeoPermissionRequiredDialog()
                     return
                 }
@@ -552,7 +549,7 @@ class MainFragment : Fragment() {
         }
         val exception = setLocationGetForecast(location)
         if (exception != Constants.emptyException) {
-            Log.d("MainFragment", exception)
+            //Log.d("MainFragment", exception)
             showConnectionTimeoutDialog()
         }
         //viewModel.setSpinnerVisibilityMainFragment(false)
@@ -601,13 +598,13 @@ class MainFragment : Fragment() {
 */
 /*
     private fun setForecast(forecastResult: ForecastResponse) {
-        Log.d("MainFragment", "entered setForecast, forecastResult=$forecastResult")
+        //Log.d("MainFragment", "entered setForecast, forecastResult=$forecastResult")
         val weekForecast = handleForecastResponse(forecastResult)
         if (weekForecast[0].latitude != null) {
-            Log.d("MainFragment", "weekForecast[0].latitude != null")
+            //Log.d("MainFragment", "weekForecast[0].latitude != null")
             viewModel.setWeekForecast(weekForecast)
         } else {
-            Log.d("MainFragment", "weekForecast[0].latitude == null")
+            //Log.d("MainFragment", "weekForecast[0].latitude == null")
             viewModel.resetWeekForecast()
         }
     }
