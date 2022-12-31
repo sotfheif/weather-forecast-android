@@ -1,5 +1,4 @@
 package com.github.sotfheif.weatherforecast.ui.main
-//TODO CHECK thar forecast livedata for UI is set to null in the beginning of some funs
 
 import android.annotation.SuppressLint
 import android.app.Application
@@ -92,13 +91,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         NOT_CANCELLED, ON_LOC_CHANGED, ON_PROVIDER_DISABLED
     }
 
-    private var _selectCityButtonWork = false//TODO mb make this volatile
+    private var _selectCityButtonWork = false
     val selectCityButtonWork: Boolean get() = _selectCityButtonWork
     fun setSelectCityButtonWork(boolean: Boolean) {
         _selectCityButtonWork = boolean
     }
 
-    private var _showForecastButtonWork = false//TODO mb make this volatile
+    private var _showForecastButtonWork = false
     val showForecastButtonWork: Boolean get() = _showForecastButtonWork
     fun setShowForecastButtonWork(boolean: Boolean) {
         _showForecastButtonWork = boolean

@@ -42,6 +42,7 @@ class MainFragment : Fragment() {
     //TODO BUG sometimes forecast won't appear in ui(after spinner dissappeared). mb is necessary for internet speed to be low. as one of solutions can  after clicking show forecst once more it appears
     //TODO BUG when clicked showforecast fast successively, spinner may continue being visible after no_internet dialog, and then (long after the dialog closed) dissappear without  anything shown
     //TODO check setSpinnerVisibility() placement (in code).
+    //TODO mb make showForecasButtonWork, selectCityButtonWork volatile or use existing loading spinner livedata instead
     //TODO later use fusedlocationprovider from google on devices where available
     //TODO later add possibility to save location (maaybee just latest detected current location will do), so that you can later use that saved location
     //TODO later review architecture
