@@ -141,7 +141,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val weekLaterDate: String = SimpleDateFormat("yyyy-MM-dd").format(
                 Calendar.getInstance().timeInMillis + Constants.WEEK_IN_MILLIS
             )
-            Timber.d("before getforecastresponse")
+            Timber.d("entered getForecastByCoords, before retrofitForecastService.getforecastresponse")
             try {
                 val listResult = OpenMeteoApi.retrofitForecastService
                     .getForecastResponse(
@@ -155,9 +155,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 _getForecastResult = listResult
             } catch (e: Exception) {
-                Timber.d("getforecastresp $e")
+                Timber.d("getForecastByCoords, $e")
                 exception = e.toString()
             } finally {
+                Timber.d("after retrofitForecastServicegetforecastresp")
                 setForecastSpinnerVisibilityMainFragment(false)
             }
         }.join()
@@ -274,6 +275,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     //@SuppressLint("MissingPermission")
     suspend fun tryGetCurrentLocForecast() {
+        Timber.d("entered tryGetCurrentLocForecast")
         setForecastSpinnerVisibilityMainFragment(true)
         lateinit var location: Location
         val locationManager: LocationManager = context
@@ -286,14 +288,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             lastKnownLocationByNetwork =
                 locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         } catch (e: SecurityException) {
-            Timber.d("Security exception: $e")
+            Timber.d("tryGetCurrentLocForecast(), security exception: $e\n lastKnownLocationByGps=$lastKnownLocationByGps, lastKnownLocationByNetwork=$lastKnownLocationByNetwork")
             _appUiState.value = AppUiStates.GEO_PERM_REQUIRED
             //showGeoPermissionRequiredDialog()
             setForecastSpinnerVisibilityMainFragment(false)
             return
         } catch (e: Exception) {
-            Timber.d("Unexpected exception: ${e})")
+            Timber.d("tryGetCurrentLocForecast(), Unexpected exception: $e\n lastKnownLocationByGps=$lastKnownLocationByGps, lastKnownLocationByNetwork=$lastKnownLocationByNetwork")
         }
+        Timber.d("tryGetCurrentLocForecast() before chooseLatestLoc, lastKnownLocationByGps=$lastKnownLocationByGps, lastKnownLocationByNetwork=$lastKnownLocationByNetwork")
+
+
         //getting latest known location (from gps or network)
         val latestKnownLoc =
             chooseLatestLocation(lastKnownLocationByGps, lastKnownLocationByNetwork)
@@ -304,8 +309,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         ) {
             location = latestKnownLoc
         } else { //if no fresh enough location is present, detect location
-            val (newLocation, error) = getLocationByGps(locationManager)
             Timber.d("string after newLocation, error assignment")
+            val (newLocation, error) = getLocationByGps(locationManager)
+            Timber.d("string after getLocationByGps(), newLocation=$newLocation, error=$error")
             when (error) {//TODO mb replace returns/spinnervissets, or leave one
                 GetLocationByGpsErrors.GPS_IS_OFF -> {
                     setForecastSpinnerVisibilityMainFragment(false)
@@ -338,9 +344,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             location = newLocation
         }
+        Timber.d("before setLocationGetForecast")
         val exception = setLocationGetForecast(location)
         if (exception != Constants.emptyException) {
-            Timber.d(exception)
+            Timber.d("after setLocationGetForecast, exception=$exception")
             _appUiState.value = AppUiStates.CONNECTION_TIMEOUT //showConnectionTimeoutDialog()
         }
         setForecastSpinnerVisibilityMainFragment(false)
@@ -376,6 +383,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 selectedCity.let {
                     if (it.latitude != null && it.longitude != null) {
                         val exception = getForecastByCoords(it.latitude, it.longitude)
+                        Timber.d("SetSelCityForecast, exception = $exception")
                         if (exception != Constants.emptyException) {
                             _appUiState.value =
                                 AppUiStates.CONNECTION_TIMEOUT //showConnectionTimeoutDialog()
@@ -489,6 +497,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val gpsLocationListener: LocationListener =
             object : LocationListener {
                 override fun onLocationChanged(newLocation: Location) {
+                    Timber.d(
+                        "entered onLocationChanged, error=$error, newLocation.time=${newLocation.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
+                    )
                     locationManager.removeUpdates(this)
                     Timber.d(
                         "entered onLocationChanged, error=$error, newLocation.time=${newLocation.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
