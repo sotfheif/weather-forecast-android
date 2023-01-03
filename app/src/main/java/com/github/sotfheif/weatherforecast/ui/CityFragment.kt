@@ -59,7 +59,7 @@ class CityFragment :
             .setTitle(getString(R.string.unexpected_mistake_text))
             .setMessage(getString(R.string.unexpected_mistake_text))
             .setCancelable(true)
-            .setNegativeButton(R.string.no_geo_dialog_button){_, _ ->}
+            .setNegativeButton(R.string.unexpected_mistake_dialog_neg_button) { _, _ -> }
             .show()
     }
 }

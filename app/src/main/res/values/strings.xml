@@ -75,4 +75,5 @@
     <string name="status_image_city_main_fragm_content_desc">loading spinner</string>
     <string name="selected_location_text_prefix">Selected: %1$s</string>
     <string name="location_permission_rationale_pos_button">Grant</string>
+    <string name="unexpected_mistake_dialog_neg_button">Close</string>
 </resources>

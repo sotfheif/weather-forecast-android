@@ -76,4 +76,5 @@
     <string name="no_geo_dialog_positive_button">Хорошо</string>
     <string name="no_geo_dialog_negative_button">Закрыть</string>
     <string name="city_not_found_dialog_negative_button">Закрыть</string>
+    <string name="unexpected_mistake_dialog_neg_button">Закрыть</string>
 </resources>

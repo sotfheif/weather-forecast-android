@@ -39,15 +39,15 @@ class MainFragment : Fragment() {
     //TODO OK FOR NOW after app launch first button click (showForecast or selectCity with textinput no blank) is laggy, probably due to viewmodel lazy initialization
     //TODO BUG mb resolved. when shouldshowrationale is true if showForecastButton is clicked consequently fast enough, several rationaleDialogs appear
     //TODO BUG if after install and launch showforecast is clicked quickly successively and then perm is denied, there wil be 2 no_perm dialogs
-    //TODO LATER if GMS available, prompt to turn on android location (gps) inside app AND mb use fusedlocationprovider
     //TODO check that where necessary additional function calls are prevented (like after fast successive buttonclicks) or that some functions stop after conflicting functions are called
     //TODO mb BUG when internet is turned off after pressing showforecast, "connection timeout" dialog appears
     //TODO BUG sometimes forecast won't appear in ui(after spinner dissappeared). mb is necessary for internet speed to be low. as one of solutions can  after clicking show forecst once more it appears
     //TODO BUG when clicked showforecast fast successively, spinner may continue being visible after no_internet dialog, and then (long after the dialog closed) dissappear without  anything shown
     //TODO check setSpinnerVisibility() placement (in code).
     //TODO mb make showForecasButtonWork, selectCityButtonWork volatile or use existing loading spinner livedata instead
+    //TODO later prompt to turn on android location (gps) inside app
     //TODO later use fusedlocationprovider from google on devices where available
-    //TODO later add possibility to save location (maaybee just latest detected current location will do), so that you can later use that saved location
+    //TODO later add possibility to save location (maybe just latest detected current location will do), so that you can later use that saved location
     //TODO later review architecture
     //TODO later replace "current location" in selected city text view with detected location name
     //TODO later download web service's location (cities) db (update regularly in background), and make search with spinner so that possible options are shown and updated after every char entered/deleted
