@@ -27,7 +27,7 @@ import kotlin.math.roundToInt
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val context = application
-    lateinit var requestLocPermissionLauncher: ActivityResultLauncher<String>
+    lateinit var requestLocPermissionLauncher: ActivityResultLauncher<Array<String>>
 
     private val _forecastStatusImageMainFragment = MutableLiveData<Boolean>()
     val forecastStatusImageMainFragment: LiveData<Boolean>
@@ -309,9 +309,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         ) {
             location = latestKnownLoc
         } else { //if no fresh enough location is present, detect location
-            Timber.d("string after newLocation, error assignment")
-            val (newLocation, error) = getLocationByGps(locationManager)
-            Timber.d("string after getLocationByGps(), newLocation=$newLocation, error=$error")
+            Timber.d("line after newLocation, error assignment")
+            var (newLocation, error) = getLocation(
+                locationManager,
+                LocationManager.NETWORK_PROVIDER,
+                Constants.DETECT_GEO_TIMEOUT_CHECK_TIMES_NETWORK
+            )
+            Timber.d("line after getLocation(NETWORK), newLocation=$newLocation, error=$error")
+            if (error == GetLocationByGpsErrors.LOC_DETECTION_FAILED) {
+                Timber.d("network loc detection failed, trying to detect loc by gps")
+                val getLocRes = getLocation(
+                    locationManager,
+                    LocationManager.GPS_PROVIDER,
+                    Constants.DETECT_GEO_TIMEOUT_CHECK_TIMES_GPS
+                )
+                newLocation = getLocRes.first
+                error = getLocRes.second
+            }
             when (error) {//TODO mb replace returns/spinnervissets, or leave one
                 GetLocationByGpsErrors.GPS_IS_OFF -> {
                     setForecastSpinnerVisibilityMainFragment(false)
@@ -320,7 +334,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 GetLocationByGpsErrors.LOC_DETECTION_FAILED -> {
                     setForecastSpinnerVisibilityMainFragment(false)
-                    Timber.d("error=$error")
+                    Timber.d("loc detection by NETWORK_PROVIDER failed, error=$error")
                     _appUiState.value =
                         AppUiStates.GEO_DETECT_FAILED //showFailedToDetectGeoDialog()
                     return
@@ -486,8 +500,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
 
     //@SuppressLint("MissingPermission")
-    suspend fun getLocationByGps(locationManager: LocationManager): Pair<Location?, GetLocationByGpsErrors> {
-        Timber.d("entered getLocationByGps")
+    suspend fun getLocation(
+        locationManager: LocationManager,
+        provider: String,
+        timeoutCheckTimes: Int
+    ): Pair<Location?, GetLocationByGpsErrors> {
+        Timber.d("entered getLocation()")
         var error = GetLocationByGpsErrors.NO_ERROR
         var timeoutJobCancelReason = TimeoutJobCancelReasons.NOT_CANCELLED // mb unnecessary
         var location: Location? = null
@@ -502,18 +520,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     )
                     locationManager.removeUpdates(this)
                     Timber.d(
-                        "entered onLocationChanged, error=$error, newLocation.time=${newLocation.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
+                        "onLocationChanged, error=$error,location=$location newLocation.time=${newLocation.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
                     )
                     Timber.d(
-                        "onlocationchanged, string before location assign. newLocation =$newLocation, location=$location, error=$error, newLocation.time=${newLocation.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
+                        "onlocationchanged, line before location assign. newLocation =$newLocation, location=$location, error=$error, newLocation.time=${newLocation.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
                     )
                     location = newLocation
                     Timber.d(
-                        "onlocationchanged, string after location assign. newLocation =$newLocation, location=$location, error=$error, location.time=${location?.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
+                        "onlocationchanged, line after location assign. newLocation =$newLocation, location=$location, error=$error, location.time=${location?.time}, calendar.getinstance.timeinmillis=${Calendar.getInstance().timeInMillis}"
                     )
                     timeoutJobCancelReason = TimeoutJobCancelReasons.ON_LOC_CHANGED
                     Timber.d(
-                        "onlocchanged, string before timeoutjob.cancel, timeOutJob=$timeOutJob"
+                        "onlocchanged, line before timeoutjob.cancel, timeOutJob=$timeOutJob"
                     )
                     timeOutJob?.cancel()
                 }
@@ -525,7 +543,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     Timber.d("entered onproviderdisabled, error=$error")
                     timeoutJobCancelReason = TimeoutJobCancelReasons.ON_PROVIDER_DISABLED
                     Timber.d(
-                        "onproviderdisabled, string before timeoutjob.cancel, timeOutJob=$timeOutJob"
+                        "onproviderdisabled, line before timeoutjob.cancel, timeOutJob=$timeOutJob"
                     )
                     //error = GetLocationByGpsErrors.GPS_IS_OFF
                     timeOutJob?.cancel()
@@ -533,12 +551,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         if (locationManager
-                .isProviderEnabled(LocationManager.GPS_PROVIDER)
+                .isProviderEnabled(provider)
         ) {
-            Timber.d("string before requesting loc updates, error=$error")
+            Timber.d("line before requesting loc updates, error=$error")
             try {
                 locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
+                    provider,
                     Constants.REQUEST_LOCATION_UPDATES_MIN_TIME_MS,
                     Constants.REQUEST_LOCATION_UPDATES_MIN_DISTANCE_M,
                     gpsLocationListener
@@ -549,13 +567,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: Exception) {
                 Timber.d("Unexpected exception: ${e})")
             }
-            Timber.d("string before launching waiter, error=$error")
+            Timber.d("line before launching waiter, error=$error")
             timeOutJob =
                 viewModelScope.launch {//TODO mb change to out of the box withTimeout()
-                    repeat(Constants.DETECT_GEO_TIMEOUT_CHECK_TIMES) {
+                    repeat(timeoutCheckTimes) {
                         if (isActive) {
                             delay(Constants.DETECT_GEO_TIMEOUT_CHECK_PERIOD_IN_MILLIS)
-                            Timber.d("string in waiter, iter $it, error=$error")
+                            Timber.d("line in waiter, iter $it, error=$error")
                         } else {
                             return@launch
                         }
@@ -563,10 +581,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     locationManager.removeUpdates(gpsLocationListener)
                 }
             Timber.d(
-                "string after launching waiter, before timeoutjob.join, error=$error"
+                "line after launching waiter, before timeoutjob.join, error=$error"
             )
             timeOutJob.join()
-            Timber.d("string after timeoutjob.join, error=$error")
+            Timber.d("line after timeoutjob.join, error=$error")
             when (timeoutJobCancelReason) {
                 TimeoutJobCancelReasons.ON_LOC_CHANGED -> {
                     Timber.d("entered timeoutJobCancelReasons.ON_LOC_CHANGED ->")
@@ -583,7 +601,7 @@ location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) ?:
 locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
  */
                     Timber.d(
-                        "location=$location, string before when (abt location), error=$error)"
+                        "location=$location, line before when (abt location), error=$error)"
                     )
                     error = GetLocationByGpsErrors.LOC_DETECTION_FAILED
                 }
@@ -592,7 +610,7 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
             error = GetLocationByGpsErrors.GPS_IS_OFF
 //showNoGeoDialog()
         }
-        Timber.d("getLocationByGps penultimate string, error=$error")
+        Timber.d("getLocation() penultimate line, error=$error")
         return Pair(location, error)
     }
 }

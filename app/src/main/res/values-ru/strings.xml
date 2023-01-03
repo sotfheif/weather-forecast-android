@@ -18,7 +18,6 @@
     <string name="location_permission_rationale_neg_button">Отмена</string>
     <string name="location_permission_rationale_pos_button">Разрешить</string>
     <string name="main_fragment_navbar">Прогноз погоды</string>
-    <string name="no_geo_dialog_button">Закрыть</string>
     <string name="no_geo_dialog_text">Включите GPS, чтобы определить текущее местоположение</string>
     <string name="no_geo_dialog_title">Включите GPS</string>
     <string name="no_geo_permission_dialog_button">Закрыть</string>
@@ -74,4 +73,7 @@
     <string name="wc95">гроза</string>
     <string name="wc96">гроза с небольшим градом</string>
     <string name="wc99">сильная гроза с градом</string>
+    <string name="no_geo_dialog_positive_button">Хорошо</string>
+    <string name="no_geo_dialog_negative_button">Закрыть</string>
+    <string name="city_not_found_dialog_negative_button">Закрыть</string>
 </resources>

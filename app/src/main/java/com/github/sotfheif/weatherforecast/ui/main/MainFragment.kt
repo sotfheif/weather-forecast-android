@@ -2,11 +2,13 @@ package com.github.sotfheif.weatherforecast.ui.main
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,18 +28,19 @@ import com.google.android.material.snackbar.Snackbar
 import timber.log.Timber
 import java.util.*
 
+
 //private const val TAG = "MainFragment" //DEBUG FEATURE
 class MainFragment : Fragment() {
     //TODO BEFORE RELEASE: remove/replace unexpectedmistake dialog and all code commented as debug feature, replace connection timeout with connection error.
-    //TODO make possible typung location name in other language.
+    //TODO make "enter" press selectcitybutton
+    //TODO make possible typing location name in other language.
     //TODO mb show pressure in other units like mB or mm Hg
     //TODO mb replace forecast loading spinner in ui, make it similar to city spinner
     //TODO OK FOR NOW after app launch first button click (showForecast or selectCity with textinput no blank) is laggy, probably due to viewmodel lazy initialization
     //TODO BUG mb resolved. when shouldshowrationale is true if showForecastButton is clicked consequently fast enough, several rationaleDialogs appear
     //TODO BUG if after install and launch showforecast is clicked quickly successively and then perm is denied, there wil be 2 no_perm dialogs
+    //TODO LATER if GMS available, prompt to turn on android location (gps) inside app AND mb use fusedlocationprovider
     //TODO check that where necessary additional function calls are prevented (like after fast successive buttonclicks) or that some functions stop after conflicting functions are called
-    //TODO test connection unavailable
-    //TODO make "enter" press selectcitybutton
     //TODO mb BUG when internet is turned off after pressing showforecast, "connection timeout" dialog appears
     //TODO BUG sometimes forecast won't appear in ui(after spinner dissappeared). mb is necessary for internet speed to be low. as one of solutions can  after clicking show forecst once more it appears
     //TODO BUG when clicked showforecast fast successively, spinner may continue being visible after no_internet dialog, and then (long after the dialog closed) dissappear without  anything shown
@@ -63,24 +66,49 @@ class MainFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Timber.d("onCreate timber")
-        viewModel.requestLocPermissionLauncher =
-            registerForActivityResult(
-                ActivityResultContracts.RequestPermission()
-            ) { isGranted: Boolean ->
-                if (isGranted) {
+        viewModel.requestLocPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            when {
+                (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                        permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true)
+                -> {
                     viewModel.setShowForecastButtonWork(false)
-                        if (!isNetworkAvailable(activity?.applicationContext)) {
-                            viewModel.setAppUiState(MainViewModel.AppUiStates.NO_INTERNET)//showNoInternetDialog()
-                        } else {
-                            viewModel.tryGetSetCurrentLocForecast()  //TODO maybe better move this call somewhere else
-                            //prepDayForecastUiText()
-                        }
-                        //viewModel.setSpinnerVisibilityMainFragment(false)
-                } else {
+                    if (!isNetworkAvailable(activity?.applicationContext)) {
+                        viewModel.setAppUiState(MainViewModel.AppUiStates.NO_INTERNET)//showNoInternetDialog()
+                    } else {
+                        viewModel.tryGetSetCurrentLocForecast()  //TODO maybe better move this call somewhere else
+                    }
+                    //viewModel.setSpinnerVisibilityMainFragment(false)
+                }
+                else -> {
+                    // No location access granted.
                     viewModel.setShowForecastButtonWork(false)
-                    viewModel.setAppUiState(MainViewModel.AppUiStates.GEO_PERM_REQUIRED)//showGeoPermissionRequiredDialog()
+                    viewModel.setAppUiState(MainViewModel.AppUiStates.GEO_PERM_REQUIRED)
                 }
             }
+        }
+
+        /*
+        viewModel.requestLocPermissionLauncher =
+    registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            viewModel.setShowForecastButtonWork(false)
+                if (!isNetworkAvailable(activity?.applicationContext)) {
+                    viewModel.setAppUiState(MainViewModel.AppUiStates.NO_INTERNET)//showNoInternetDialog()
+                } else {
+                    viewModel.tryGetSetCurrentLocForecast()  //TODO maybe better move this call somewhere else
+                    //prepDayForecastUiText()
+                }
+                //viewModel.setSpinnerVisibilityMainFragment(false)
+        } else {
+            viewModel.setShowForecastButtonWork(false)
+            viewModel.setAppUiState(MainViewModel.AppUiStates.GEO_PERM_REQUIRED)//showGeoPermissionRequiredDialog()
+        }
+    }
+     */
     }
 
     override fun onCreateView(
@@ -318,7 +346,10 @@ class MainFragment : Fragment() {
             .setTitle(getString(R.string.no_geo_dialog_title))
             .setMessage(getString(R.string.no_geo_dialog_text))
             .setCancelable(true)
-            .setNegativeButton(R.string.no_geo_dialog_button) { _, _ -> }
+            .setPositiveButton("OK") { _, _ ->
+                startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            }
+            .setNegativeButton(R.string.no_geo_dialog_negative_button) { _, _ -> }
             .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
     }
@@ -348,7 +379,7 @@ class MainFragment : Fragment() {
             .setTitle(getString(R.string.city_not_found_dialog_title))
             .setMessage(getString(R.string.city_not_found_dialog_text))
             .setCancelable(true)
-            .setNegativeButton(R.string.no_geo_dialog_button) { _, _ -> }
+            .setNegativeButton(R.string.city_not_found_dialog_negative_button) { _, _ -> }
             .setOnDismissListener { viewModel.setNormalAppUiState() }
             .show()
     }
@@ -406,7 +437,7 @@ class MainFragment : Fragment() {
     }
 */
 
-    private fun showGeoPermissionRationaleDialog(activityResultLauncher: ActivityResultLauncher<String>) {
+    private fun showGeoPermissionRationaleDialog(activityResultLauncher: ActivityResultLauncher<Array<String>>) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.no_geo_permission_dialog_title))
             .setMessage(
@@ -418,7 +449,7 @@ class MainFragment : Fragment() {
             .setCancelable(true)
             .setPositiveButton(getString(R.string.location_permission_rationale_pos_button)) { _, _ ->
                 activityResultLauncher.launch(
-                    Manifest.permission.ACCESS_COARSE_LOCATION
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
                 )
             }
             .setNegativeButton(R.string.location_permission_rationale_neg_button) { _, _ ->
@@ -428,24 +459,31 @@ class MainFragment : Fragment() {
             .show()
     }
 
-    fun checkPermDetectLoc(activityResultLauncher: ActivityResultLauncher<String>) {
+    fun checkPermDetectLoc(activityResultLauncher: ActivityResultLauncher<Array<String>>) {
+
         when {
             ContextCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED -> {
+                Timber.d("coarselocpermgranted when branch")
                 viewModel.tryGetSetCurrentLocForecast()
                 //prepDayForecastUiText()
                 //viewModel.setSpinnerVisibilityMainFragment(false)
             }
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
                 //viewModel.setSpinnerVisibilityMainFragment(false)
+                Timber.d("rationalecoarseloc when branch")
                 viewModel.setAppUiState(MainViewModel.AppUiStates.GEO_PERM_RATIONALE) //showGeoPermissionRationaleDialog(activityResultLauncher)
             }
             else -> {
+                Timber.d("else when branch")
                 //viewModel.setShowForecastButtonWork(true)
                 activityResultLauncher.launch(
-                    Manifest.permission.ACCESS_COARSE_LOCATION
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
                 )
             }
         }
@@ -525,7 +563,7 @@ class MainFragment : Fragment() {
             location = latestKnownLoc
         } else { //if no fresh enough location is present, detect location
             val (newLocation, error) = getLocationByGps(locationManager)
-            Timber.d("string after newLocation, error assignment")
+            Timber.d("line after newLocation, error assignment")
             when (error) {
                 GetLocationByGpsErrors.GPS_IS_OFF -> {
                     viewModel.setSpinnerVisibilityMainFragment(false)

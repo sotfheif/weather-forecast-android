@@ -11,7 +11,8 @@
     <string name="week_forecast_button">Week Forecast</string>
     <string name="no_geo_dialog_title">Please turn on geolocation</string>
     <string name="no_geo_dialog_text">Please turn on geolocation to detect current location</string>
-    <string name="no_geo_dialog_button">Close</string>
+    <string name="no_geo_dialog_positive_button">OK</string>
+    <string name="no_geo_dialog_negative_button">Close</string>
     <string name="no_internet_dialog_title">Connection error</string>
     <string name="no_internet_dialog_text">Please check your internet connection and try again</string>
     <string name="no_internet_dialog_button">Close</string>
@@ -31,6 +32,7 @@
     <string name="select_city_snackbar">Please, specify location</string>
     <string name="city_not_found_dialog_title">Nothing found</string>
     <string name="city_not_found_dialog_text">No results were found matching your search criteria. Сheck spelling, please</string>
+    <string name="city_not_found_dialog_negative_button">Close</string>
     <string name="unexpected_mistake_text">Unexpected mistake</string>
     <string name="wc0">clear sky</string>
     <string name="wc1">mainly clear</string>
