@@ -9,7 +9,9 @@ import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
+import androidx.core.location.LocationManagerCompat
 import androidx.lifecycle.*
 import com.github.sotfheif.weatherforecast.Constants
 import com.github.sotfheif.weatherforecast.data.DayForecast
@@ -59,6 +61,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var hourly = "pressure_msl,relativehumidity_2m"
     private var daily =
         "weathercode,temperature_2m_min,temperature_2m_max,windspeed_10m_max,winddirection_10m_dominant"
+    lateinit var weatherCodeMap: Map<Int, String>
 
     val emptyCity = City()
 
@@ -112,7 +115,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     suspend fun getCitiesByName(query: String): Pair<Boolean, String> {
         Timber.d("entered getcitiesbyname")
         var listResult = CityResponse()
-        var exception: String = Constants.emptyException
+        var exception: String = Constants.EMPTY_EXCEPTION
         val getCitiesJob = viewModelScope.launch {
             _citySearchResult = listOf()
             try {
@@ -135,7 +138,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     @SuppressLint("SimpleDateFormat")
     suspend fun getForecastByCoords(cityLatitude: Double, cityLongitude: Double): String {
         setForecastSpinnerVisibilityMainFragment(true)
-        var exception = Constants.emptyException
+        var exception = Constants.EMPTY_EXCEPTION
         viewModelScope.launch {
             val currentDate: String = SimpleDateFormat("yyyy-MM-dd").format(Date())
             val weekLaterDate: String = SimpleDateFormat("yyyy-MM-dd").format(
@@ -234,11 +237,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _appUiState.value = AppUiStates.GO_TO_CITY_FRAGMENT/*this@MainFragment.findNavController().navigate(
                     MainFragmentDirections.actionMainFragmentToCityFragment()
                 )*/
-        } else if (foundAnyCities.second !== Constants.emptyException) {
-                _appUiState.value = AppUiStates.CONNECTION_TIMEOUT//showConnectionTimeoutDialog()
-            } else {
-                _appUiState.value = AppUiStates.CITY_NOT_FOUND//showCityNotFoundDialog()
-            }
+        } else if (foundAnyCities.second !== Constants.EMPTY_EXCEPTION) {
+            _appUiState.value = AppUiStates.CONNECTION_TIMEOUT//showConnectionTimeoutDialog()
+        } else {
+            _appUiState.value = AppUiStates.CITY_NOT_FOUND//showCityNotFoundDialog()
+        }
     }
 
     private fun handleForecastResponse(forecastResponse: ForecastResponse):
@@ -360,7 +363,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         Timber.d("before setLocationGetForecast")
         val exception = setLocationGetForecast(location)
-        if (exception != Constants.emptyException) {
+        if (exception != Constants.EMPTY_EXCEPTION) {
             Timber.d("after setLocationGetForecast, exception=$exception")
             _appUiState.value = AppUiStates.CONNECTION_TIMEOUT //showConnectionTimeoutDialog()
         }
@@ -398,7 +401,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     if (it.latitude != null && it.longitude != null) {
                         val exception = getForecastByCoords(it.latitude, it.longitude)
                         Timber.d("SetSelCityForecast, exception = $exception")
-                        if (exception != Constants.emptyException) {
+                        if (exception != Constants.EMPTY_EXCEPTION) {
                             _appUiState.value =
                                 AppUiStates.CONNECTION_TIMEOUT //showConnectionTimeoutDialog()
                         } else {
@@ -537,9 +540,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 override fun onProviderDisabled(provider: String) {
-                    super.onProviderDisabled(provider)
                     locationManager.removeUpdates(this)
-
                     Timber.d("entered onproviderdisabled, error=$error")
                     timeoutJobCancelReason = TimeoutJobCancelReasons.ON_PROVIDER_DISABLED
                     Timber.d(
@@ -547,7 +548,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     )
                     //error = GetLocationByGpsErrors.GPS_IS_OFF
                     timeOutJob?.cancel()
-                    //showNoGeoDialog()
+                }
+
+                @Deprecated(
+                    "Deprecated in Java", ReplaceWith(
+                        "super.onStatusChanged(provider, status, extras)",
+                        "android.location.LocationListener"
+                    )
+                )
+                override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+                    //DON'T REMOVE, will cause crash on android 5
+                }
+
+                override fun onProviderEnabled(provider: String) {
+                    //DON'T REMOVE, will cause crash on android 5
                 }
             }
         if (locationManager
@@ -612,5 +626,30 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         }
         Timber.d("getLocation() penultimate line, error=$error")
         return Pair(location, error)
+    }
+
+    private fun isLocationEnabled(): Boolean {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return LocationManagerCompat.isLocationEnabled(locationManager)
+    }
+
+    fun shouldOpenLocSettings(): Boolean {
+        return try {
+            !isLocationEnabled()
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun weatherCodeToWords(
+        dayForecast: DayForecast,
+    ): DayForecast {
+        return dayForecast.run {
+            DayForecast(
+                id, latitude, longitude, pressure, relativeHumidity,
+                weatherCodeMap[weather?.toInt()], temperature2mMin, temperature2mMax,
+                windspeed10mMax, winddirection10mDominant
+            )
+        }
     }
 }

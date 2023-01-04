@@ -22,16 +22,30 @@ class MyWeekForecastListAdapter :
                 Calendar.getInstance().timeInMillis + dayInMillis * position
             )
             binding.forecast.text =
-                holder.itemView.context.getString(
-                    R.string.day_forecast,
-                    dayForecast.temperature2mMin ?: "",
-                    dayForecast.temperature2mMax ?: "",
-                    dayForecast.weather ?: "",
-                    dayForecast.pressure ?: "",
-                    dayForecast.windspeed10mMax ?: "",
-                    dayForecast.winddirection10mDominant ?: "",
-                    dayForecast.relativeHumidity ?: ""
-                )
+                holder.itemView.context.run {
+                    getString(
+                        R.string.day_forecast,
+                        dayForecast.temperature2mMin?.plus(
+                            getString(R.string.temperature_unit)
+                        ) ?: "",
+                        dayForecast.temperature2mMax?.plus(
+                            getString(R.string.temperature_unit)
+                        ) ?: "",
+                        dayForecast.weather ?: "",
+                        dayForecast.pressure?.plus(
+                            getString(R.string.pressure_unit)
+                        ) ?: "",
+                        dayForecast.windspeed10mMax?.plus(
+                            getString(R.string.wind_speed_unit)
+                        ) ?: "",
+                        dayForecast.winddirection10mDominant?.plus(
+                            getString(R.string.wind_direction_unit)
+                        ) ?: "",
+                        dayForecast.relativeHumidity?.plus(
+                            getString(R.string.relative_humidity_unit)
+                        ) ?: ""
+                    )
+                }
         }
     }
 

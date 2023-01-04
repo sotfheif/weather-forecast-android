@@ -8,9 +8,8 @@ object Constants {
     const val DETECT_GEO_TIMEOUT_CHECK_TIMES_NETWORK = 20
     const val DETECT_GEO_TIMEOUT_CHECK_TIMES_GPS = 40
 
-
     //const val DETECT_GEO_TIMEOUT_IN_MILLIS: Long = DETECT_GEO_TIMEOUT_CHECK_PERIOD_IN_MILLIS * DETECT_GEO_TIMEOUT_CHECK_TIMES
-    const val REQUEST_LOCATION_UPDATES_MIN_TIME_MS: Long = 500
+    const val REQUEST_LOCATION_UPDATES_MIN_TIME_MS: Long = 1000 * 60 * 5//was 500
     const val REQUEST_LOCATION_UPDATES_MIN_DISTANCE_M: Float = 0F
 
     /*
@@ -24,5 +23,5 @@ object Constants {
     const val FORECAST_CLIENT_READ_TIMEOUT_MS: Long = 6_000L
     */
     const val FORECAST_CLIENT_CALL_TIMEOUT_MS: Long = 12_000L
-    const val emptyException: String = "no exception"
+    const val EMPTY_EXCEPTION: String = "no exception"
 }

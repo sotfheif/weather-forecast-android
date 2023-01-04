@@ -60,8 +60,6 @@ class MainFragment : Fragment() {
     */
     private val viewModel: MainViewModel by activityViewModels() //or another way?
     private lateinit var binding: FragmentMainBinding
-    private lateinit var weatherCodeMap: Map<Int, String>
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -215,7 +213,7 @@ class MainFragment : Fragment() {
             }
         }
 
-        weatherCodeMap = mapOf(/*mb do something with this*/
+        viewModel.weatherCodeMap = mapOf(
             0 to getString(R.string.wc0),
             1 to getString(R.string.wc1),
             2 to getString(R.string.wc2),
@@ -346,8 +344,9 @@ class MainFragment : Fragment() {
             .setTitle(getString(R.string.no_geo_dialog_title))
             .setMessage(getString(R.string.no_geo_dialog_text))
             .setCancelable(true)
-            .setPositiveButton("OK") { _, _ ->
-                startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            .setPositiveButton(R.string.no_geo_dialog_positive_button) { _, _ ->
+                if (viewModel.shouldOpenLocSettings())
+                    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
             .setNegativeButton(R.string.no_geo_dialog_negative_button) { _, _ -> }
             .setOnDismissListener { viewModel.setNormalAppUiState() }
@@ -652,7 +651,7 @@ class MainFragment : Fragment() {
     }
     */
 
-    private fun prepDayForecastUiText(dayForecast: DayForecast): String {
+    fun prepDayForecastUiText(dayForecast: DayForecast): String {
         return if (viewModel.weekForecast.value.isNullOrEmpty()) {
             ""
         } else {
@@ -664,7 +663,7 @@ class MainFragment : Fragment() {
                 dayForecast.temperature2mMax?.plus(
                     getString(R.string.temperature_unit)
                 ) ?: "",
-                weatherCodeMap[dayForecast.weather?.toInt()] ?: "",
+                viewModel.weatherCodeMap[dayForecast.weather?.toInt()] ?: "",
                 dayForecast.pressure?.plus(
                     getString(R.string.pressure_unit)
                 ) ?: "",
