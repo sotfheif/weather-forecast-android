@@ -112,14 +112,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         longitude = _currentLocation.longitude
     }
 
-    suspend fun getCitiesByName(query: String): Pair<Boolean, String> {
+    suspend fun getCitiesByName(query: String, lang: String): Pair<Boolean, String> {
         Timber.d("entered getcitiesbyname")
         var listResult = CityResponse()
         var exception: String = Constants.EMPTY_EXCEPTION
         val getCitiesJob = viewModelScope.launch {
             _citySearchResult = listOf()
             try {
-                listResult = OpenMeteoApi.retrofitCityService.getCityResponse(name = query)
+                listResult =
+                    OpenMeteoApi.retrofitCityService.getCityResponse(name = query, language = lang)
             } catch (e: Exception) {
                 Timber.d("getCitiesByName: $e")
                 exception = e.toString()
@@ -223,9 +224,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    suspend fun findCity(query: String) {
+    suspend fun findCity(query: String, lang: String) {
         resetForecastResult()
-        val foundAnyCities = getCitiesByName(query)
+        val foundAnyCities = getCitiesByName(query, lang)
         if (foundAnyCities.first) {
             _appUiState.value = AppUiStates.GO_TO_CITY_FRAGMENT/*this@MainFragment.findNavController().navigate(
                     MainFragmentDirections.actionMainFragmentToCityFragment()
@@ -375,13 +376,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _appUiState.value = appUiState
     }
 
-    fun checkNetworkFindCity(locQuery: String) {
+    fun checkNetworkFindCity(locQuery: String, citySearchQueryLang: String) {
         viewModelScope.launch {
             if (selectCityButtonWork) return@launch
             setSelectCityButtonWork(true)
             setCitySpinnerVisibilityMainFragment(true)
             if (isNetworkAvailable(context)) {
-                findCity(locQuery)
+                findCity(locQuery, citySearchQueryLang)
             } else setAppUiState(AppUiStates.NO_INTERNET)
             setCitySpinnerVisibilityMainFragment(false)
             setSelectCityButtonWork(false)

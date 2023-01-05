@@ -146,7 +146,7 @@ class MainFragment : Fragment() {
         }
 
         binding.selectCityButton.setOnClickListener {
-            onSelectCityButtonClicked()
+            onSelectCityButtonClicked(getString(R.string.city_search_query_language))
         }
 
         binding.weekForecastButton.setOnClickListener {
@@ -716,13 +716,16 @@ class MainFragment : Fragment() {
             ?.hide(WindowInsetsCompat.Type.ime())
     }
 
-    private fun onSelectCityButtonClicked() {
+    private fun onSelectCityButtonClicked(citySearchQueryLang: String) {
         //if (viewModel.selectCityButtonWork) return // moved this into beginning of viewModel.checkknetworkfindcity. or move here setting work to true from viewModel.findCity
         closeVirtualKeyboard()
         if (binding.textFieldInput.text.isNullOrBlank()) {
             viewModel.setAppUiState(MainViewModel.AppUiStates.EMPTY_CITY_TEXT_FIELD)
             viewModel.setNormalAppUiState()
-        } else viewModel.checkNetworkFindCity(binding.textFieldInput.text.toString())
+        } else viewModel.checkNetworkFindCity(
+            binding.textFieldInput.text.toString(),
+            citySearchQueryLang
+        )
         /*if (isNetworkAvailable(activity?.applicationContext)) {
                 viewModel.findCity(binding.textFieldInput.text.toString())
             } else viewModel.setAppUiState(MainViewModel.AppUiStates.NO_INTERNET)*/

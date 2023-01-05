@@ -78,4 +78,5 @@
     <string name="unexpected_mistake_dialog_neg_button">Закрыть</string>
     <string name="failed_to_detect_geo_dialog_text_lt_api30">Не удалось определить местоположение. Попробуйте подойти к окну, если вы в помещении</string>
     <string name="failed_to_detect_geo_dialog_text_ge_api30">Не удалось определить местоположение. Попробуйте подойти к окну, если вы в помещении. Если доступно, вы можете включить сервис геолокации \"Определение местоположения\" в настройках местоположения, чтобы определять местоположение быстрее</string>
+    <string name="city_search_query_language">ru</string>
 </resources>
