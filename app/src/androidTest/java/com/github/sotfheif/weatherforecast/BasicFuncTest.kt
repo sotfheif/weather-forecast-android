@@ -36,7 +36,6 @@ class BasicFuncTest {
 
     @Test
     fun showCurLocTodayForecast() {
-        //Thread.sleep(3000)
         //turn on location services
         if (Build.VERSION.SDK_INT >= 29)
             InstrumentationRegistry.getInstrumentation().uiAutomation
@@ -70,7 +69,7 @@ class BasicFuncTest {
             matches(
                 Utils.atPosition(
                     0,
-                    hasDescendant(withSubstring("–"))
+                    hasDescendant(withSubstring("—"))
                 )
             )
         )
@@ -82,27 +81,20 @@ class BasicFuncTest {
                 )
             )
         )
-        onView(withId(R.id.recycler_view)).perform(
-            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(
-                6,
-                click()
-            )
-        )
-        Log.d("BasicFuncTest", "RecyclerViewActions.actionOnItemAtPosition was OK")
         onView(withId(R.id.recycler_view)).perform(swipeUp())
         Thread.sleep(2000)
         onView(withId(R.id.recycler_view)).check(
             matches(
                 Utils.atPosition(
                     6,
-                    hasDescendant(withSubstring("–"))
+                    hasDescendant(withSubstring("—"))
                 )
             )
         )
         onView(withId(R.id.recycler_view)).check(
             matches(
                 Utils.atPosition(
-                    0,
+                    6,
                     hasDescendant(withSubstring("-"))
                 )
             )
@@ -122,8 +114,6 @@ class BasicFuncTest {
             .close()
         Thread.sleep(500)
         onView(withId(R.id.textFieldInput)).perform(typeText("Paris"), closeSoftKeyboard())
-        //Thread.sleep(3000)
-        //Thread.sleep(2000)
         onView(withId(R.id.select_city_button)).perform(click())
         Thread.sleep(15000)
         onView(withId(R.id.recycler_view)).perform(
@@ -132,7 +122,6 @@ class BasicFuncTest {
                 click()
             )
         )
-        //Thread.sleep(1000)
         onView(withId(R.id.showForecastButton)).perform(click())
         Thread.sleep(10000)
         onView(withId(R.id.todayForecastTextView)).check(matches(not(withText(""))))
@@ -142,7 +131,7 @@ class BasicFuncTest {
             matches(
                 Utils.atPosition(
                     0,
-                    hasDescendant(withSubstring("–"))
+                    hasDescendant(withSubstring("—"))
                 )
             )
         )
@@ -154,27 +143,20 @@ class BasicFuncTest {
                 )
             )
         )
-        onView(withId(R.id.recycler_view)).perform(
-            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(
-                6,
-                click()
-            )
-        )
-        Log.d("BasicFuncTest", "RecyclerViewActions.actionOnItemAtPosition was OK")
         onView(withId(R.id.recycler_view)).perform(swipeUp())
         Thread.sleep(2000)
         onView(withId(R.id.recycler_view)).check(
             matches(
                 Utils.atPosition(
                     6,
-                    hasDescendant(withSubstring("–"))
+                    hasDescendant(withSubstring("—"))
                 )
             )
         )
         onView(withId(R.id.recycler_view)).check(
             matches(
                 Utils.atPosition(
-                    0,
+                    6,
                     hasDescendant(withSubstring("-"))
                 )
             )
