@@ -496,7 +496,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     Timber.d(
                         "onproviderdisabled, line before timeoutjob.cancel, timeOutJob=$timeOutJob"
                     )
-                    //error = GetLocationByGpsErrors.GPS_IS_OFF
                     timeOutJob?.cancel()
                 }
 
@@ -557,7 +556,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     Timber.d(
                         "entered timeoutJobCancelReasons.ON_PROVIDER_DISABLED ->"
                     )
-                    error = GetLocationByGpsErrors.GPS_IS_OFF
+                    if (provider != LocationManager.NETWORK_PROVIDER) {
+                        error = GetLocationByGpsErrors.GPS_IS_OFF
+                    } else {
+                        error = GetLocationByGpsErrors.LOC_DETECTION_FAILED
+                    }
                 }
                 TimeoutJobCancelReasons.NOT_CANCELLED -> {//reached timeout
 /* last try, get any, even old location. mb do this after function completes
@@ -571,8 +574,11 @@ locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
                 }
             }
         } else {
-            error = GetLocationByGpsErrors.GPS_IS_OFF
-//showNoGeoDialog()
+            if (provider != LocationManager.NETWORK_PROVIDER) {
+                error = GetLocationByGpsErrors.GPS_IS_OFF
+            } else {
+                error = GetLocationByGpsErrors.LOC_DETECTION_FAILED
+            }
         }
         Timber.d("getLocation() penultimate line, error=$error")
         return Pair(location, error)

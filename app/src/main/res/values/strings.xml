@@ -20,7 +20,8 @@
     <string name="connection_timeout_dialog_text">Connection timeout, please check your internet connection speed</string>
     <string name="connection_timeout_dialog_button">Close</string>
     <string name="failed_to_detect_geo_dialog_title">Geolocation error</string>
-    <string name="failed_to_detect_geo_dialog_text">Couldn\'t detect location. Please make sure geolocation service is working and try again</string>
+    <string name="failed_to_detect_geo_dialog_text_lt_api30">Couldn\'t detect location. Try to go to the window if you\'re in a building</string>
+    <string name="failed_to_detect_geo_dialog_text_ge_api30">Couldn\'t detect location. Try to go to the window if you\'re in a building. If available, you can turn on Google Location Accuracy Service in Location settings to detect location faster</string>
     <string name="failed_to_detect_geo_dialog_button">Close</string>
     <string name="no_geo_permission_dialog_title">Permission required</string>
     <string name="no_geo_permission_dialog_text">Please grant the app location permission to detect current location</string>

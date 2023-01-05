@@ -354,7 +354,11 @@ class MainFragment : Fragment() {
     private fun showFailedToDetectGeoDialog() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.failed_to_detect_geo_dialog_title))
-            .setMessage(getString(R.string.failed_to_detect_geo_dialog_text))
+            .setMessage(
+                if (Build.VERSION.SDK_INT < 30)
+                    getString(R.string.failed_to_detect_geo_dialog_text_lt_api30)
+                else getString(R.string.failed_to_detect_geo_dialog_text_ge_api30)
+            )
             .setCancelable(true)
             .setNegativeButton(R.string.failed_to_detect_geo_dialog_button) { _, _ -> }
             .setOnDismissListener { viewModel.setNormalAppUiState() }

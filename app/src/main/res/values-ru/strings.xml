@@ -12,7 +12,6 @@
     <string name="day_forecast">%1$s — %2$s, %3$s, давление %4$s, ветер %5$s %6$s, относительная влажность %7$s</string>
     <string name="enter_city_snackbar">Введите название города/населённого пункта</string>
     <string name="failed_to_detect_geo_dialog_button">Закрыть</string>
-    <string name="failed_to_detect_geo_dialog_text">Не удалось определить местоположение. Убедитесь, что GPS работает и попробуйте снова</string>
     <string name="failed_to_detect_geo_dialog_title">Ошибка определения местоположения</string>
     <string name="location_permission_rationale_message">Предоставьте приложению доступ к приблизительному местоположению, чтобы оно могло определить местоположение и показать актуальный прогноз. Вы можете использовать приложение не предоставляя разрешения: введите название населённого пункта и выберите \\\"%1$s\\\"</string>
     <string name="location_permission_rationale_neg_button">Отмена</string>
@@ -77,4 +76,6 @@
     <string name="no_geo_dialog_negative_button">Закрыть</string>
     <string name="city_not_found_dialog_negative_button">Закрыть</string>
     <string name="unexpected_mistake_dialog_neg_button">Закрыть</string>
+    <string name="failed_to_detect_geo_dialog_text_lt_api30">Не удалось определить местоположение. Попробуйте подойти к окну, если вы в помещении</string>
+    <string name="failed_to_detect_geo_dialog_text_ge_api30">Не удалось определить местоположение. Попробуйте подойти к окну, если вы в помещении. Если доступно, вы можете включить сервис геолокации \"Определение местоположения\" в настройках местоположения, чтобы определять местоположение быстрее</string>
 </resources>
