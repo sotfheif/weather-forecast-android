@@ -23,6 +23,7 @@ import androidx.navigation.fragment.findNavController
 import com.github.sotfheif.weatherforecast.R
 import com.github.sotfheif.weatherforecast.data.DayForecast
 import com.github.sotfheif.weatherforecast.databinding.FragmentMainBinding
+import com.github.sotfheif.weatherforecast.prepForUi
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import timber.log.Timber
@@ -35,13 +36,11 @@ class MainFragment : Fragment() {
     //TODO make "enter" press selectcitybutton
     //TODO make possible typing location name in other language.
     //TODO mb show pressure in other units like mB or mm Hg
-    //TODO mb replace forecast loading spinner in ui, make it similar to city spinner
-    //TODO OK FOR NOW after app launch first button click (showForecast or selectCity with textinput no blank) is laggy, probably due to viewmodel lazy initialization
+    //TODO check PackageFunctions DayForecast.prepForUi
+    //TODO OK FOR NOW after app launch first button click (showForecast or selectCity with textinput no blank) is laggy, probably due to fat viewmodel lazy initialization
     //TODO BUG mb resolved. when shouldshowrationale is true if showForecastButton is clicked consequently fast enough, several rationaleDialogs appear
     //TODO BUG if after install and launch showforecast is clicked quickly successively and then perm is denied, there wil be 2 no_perm dialogs
     //TODO check that where necessary additional function calls are prevented (like after fast successive buttonclicks) or that some functions stop after conflicting functions are called
-    //TODO mb BUG when internet is turned off after pressing showforecast, "connection timeout" dialog appears
-    //TODO BUG sometimes forecast won't appear in ui(after spinner dissappeared). mb is necessary for internet speed to be low. as one of solutions can  after clicking show forecst once more it appears
     //TODO BUG when clicked showforecast fast successively, spinner may continue being visible after no_internet dialog, and then (long after the dialog closed) dissappear without  anything shown
     //TODO check setSpinnerVisibility() placement (in code).
     //TODO mb make showForecasButtonWork, selectCityButtonWork volatile or use existing loading spinner livedata instead
@@ -327,14 +326,13 @@ class MainFragment : Fragment() {
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         Timber.d("onViewStateRestored")
-        //prepDayForecastUiText()
         viewModel.selectedCity.let {
             binding.selectedCityTextView.text = if (it == viewModel.emptyCity)
                 getString(
                     R.string.selected_location_text_prefix,
                     getString(R.string.selected_city_text_current_location)
                 )
-            else getString(R.string.selected_location_text_prefix, viewModel.prepCityForUi(it))
+            else getString(R.string.selected_location_text_prefix, it.prepForUi())
         }
     }
 

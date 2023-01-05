@@ -14,8 +14,10 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.location.LocationManagerCompat
 import androidx.lifecycle.*
 import com.github.sotfheif.weatherforecast.Constants
+import com.github.sotfheif.weatherforecast.chooseLatestLocation
 import com.github.sotfheif.weatherforecast.data.DayForecast
 import com.github.sotfheif.weatherforecast.network.*
+import com.github.sotfheif.weatherforecast.toDayForecastList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -23,8 +25,6 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.round
-import kotlin.math.roundToInt
 
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -169,13 +169,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return exception
     }
 
-    fun prepCityForUi(city: City): String {
-        return listOfNotNull(
-            city.name, city.admin4, city.admin3,
-            city.admin2, city.admin1, city.country,
-        )
-            .joinToString(", ")
-    }
 
     fun setSelectedCity(city: City) {
         _selectedCity = city
@@ -219,7 +212,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun setForecast(forecastResult: ForecastResponse) {
         Timber.d("entered setForecast, forecastResult=$forecastResult")
-        val weekForecast = handleForecastResponse(forecastResult)
+        val weekForecast = forecastResult.toDayForecastList()
         if (weekForecast[0].latitude != null) { //TODO mb replace this check with something more elegant
             Timber.d("weekForecast[0].latitude != null")
             setWeekForecast(weekForecast)
@@ -242,38 +235,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             _appUiState.value = AppUiStates.CITY_NOT_FOUND//showCityNotFoundDialog()
         }
-    }
-
-    private fun handleForecastResponse(forecastResponse: ForecastResponse):
-            List<DayForecast> {
-        if (forecastResponse.latitude == null) {
-            return mutableListOf(DayForecast())
-        }
-        val weekForecast: MutableList<DayForecast> = mutableListOf()
-        repeat(7) {
-            val dayPressure = round(
-                forecastResponse.hourly.pressure_msl
-                    .subList(it * 24, (it + 1) * 24).average() * 10
-            ) / 10
-            val dayRelativeHumidity = forecastResponse.hourly.relativehumidity_2m
-                .subList(it * 24, (it + 1) * 24).average().roundToInt()
-            weekForecast.add(
-                DayForecast(
-                    latitude = forecastResponse.latitude,
-                    longitude = forecastResponse.longitude,
-                    pressure = dayPressure.toString(),
-                    relativeHumidity = dayRelativeHumidity.toString(),
-                    weather = forecastResponse.daily.weathercode[it].toString(),
-                    temperature2mMin = forecastResponse.daily.temperature_2m_min[it].toString(),
-                    temperature2mMax = forecastResponse.daily.temperature_2m_max[it].toString(),
-                    windspeed10mMax = forecastResponse.daily.windspeed_10m_max[it].toString(),
-                    winddirection10mDominant = forecastResponse.daily
-                        .winddirection_10m_dominant[it].toString(),
-                    timeStamp = Calendar.getInstance().timeInMillis
-                )
-            )
-        }
-        return weekForecast
     }
 
     //@SuppressLint("MissingPermission")
@@ -370,17 +331,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         setForecastSpinnerVisibilityMainFragment(false)
     }
 
-    private fun chooseLatestLocation(
-        latestKnownLocation1: Location?,
-        latestKnownLocation2: Location?
-    ): Location? {
-        if (latestKnownLocation1 == null && latestKnownLocation2 == null) {
-            return null
-        }
-        return if ((latestKnownLocation1?.time ?: 0) > (latestKnownLocation2?.time ?: 0)) {
-            latestKnownLocation1
-        } else latestKnownLocation2
-    }
 
     fun tryGetSetCurrentLocForecast() {
         viewModelScope.launch {
