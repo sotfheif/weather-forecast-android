@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.github.sotfheif.weatherforecast.R
 import com.github.sotfheif.weatherforecast.data.DayForecast
 import com.github.sotfheif.weatherforecast.databinding.FragmentItemBinding
+import com.github.sotfheif.weatherforecast.pressureToLocUnit
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -32,8 +33,8 @@ class MyWeekForecastListAdapter :
                             getString(R.string.temperature_unit)
                         ) ?: "",
                         dayForecast.weather ?: "",
-                        dayForecast.pressure?.plus(
-                            getString(R.string.pressure_unit)
+                        dayForecast.pressure?.pressureToLocUnit(
+                            this
                         ) ?: "",
                         dayForecast.windspeed10mMax?.plus(
                             getString(R.string.wind_speed_unit)

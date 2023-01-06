@@ -24,6 +24,7 @@ import com.github.sotfheif.weatherforecast.R
 import com.github.sotfheif.weatherforecast.data.DayForecast
 import com.github.sotfheif.weatherforecast.databinding.FragmentMainBinding
 import com.github.sotfheif.weatherforecast.prepForUi
+import com.github.sotfheif.weatherforecast.pressureToLocUnit
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import timber.log.Timber
@@ -33,6 +34,7 @@ import java.util.*
 //private const val TAG = "MainFragment" //DEBUG FEATURE
 class MainFragment : Fragment() {
     //TODO BEFORE RELEASE: remove/replace unexpectedmistake dialog and all code commented as debug feature, replace connection timeout with connection error.
+    //TODO BUG open weekforecastfragment, change locale, return to the app(weekforecastfragment). weathercode remains the same)
     //TODO make "enter" press selectcitybutton
     //TODO make possible typing location name in other language.
     //TODO mb show pressure in other units like mB or mm Hg
@@ -146,7 +148,7 @@ class MainFragment : Fragment() {
         }
 
         binding.selectCityButton.setOnClickListener {
-            onSelectCityButtonClicked(getString(R.string.city_search_query_language))
+            onSelectCityButtonClicked(getString(R.string.language))
         }
 
         binding.weekForecastButton.setOnClickListener {
@@ -666,9 +668,7 @@ class MainFragment : Fragment() {
                     getString(R.string.temperature_unit)
                 ) ?: "",
                 viewModel.weatherCodeMap[dayForecast.weather?.toInt()] ?: "",
-                dayForecast.pressure?.plus(
-                    getString(R.string.pressure_unit)
-                ) ?: "",
+                dayForecast.pressure?.pressureToLocUnit(requireContext()) ?: "",
                 dayForecast.windspeed10mMax?.plus(
                     getString(R.string.wind_speed_unit)
                 ) ?: "",

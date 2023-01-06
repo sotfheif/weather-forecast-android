@@ -30,7 +30,8 @@
     <string name="api_error_dialog_title">Ошибка сервера</string>
     <string name="select_city_snackbar">Введите название населённого пункта</string>
     <string name="other_city_rb">Указать местоположение</string>
-    <string name="pressure_unit">ГПа</string>
+    <string name="pressure_unit_hpa">гПа</string>
+    <string name="pressure_unit_mm_hg">мм рт.ст.</string>
     <string name="relative_humidity_unit">%</string>
     <string name="select_city_button">Выбрать местоположение</string>
     <string name="selected_city_text_current_location">Текущее местоположение</string>
@@ -78,5 +79,5 @@
     <string name="unexpected_mistake_dialog_neg_button">Закрыть</string>
     <string name="failed_to_detect_geo_dialog_text_lt_api30">Не удалось определить местоположение. Попробуйте подойти к окну, если вы в помещении</string>
     <string name="failed_to_detect_geo_dialog_text_ge_api30">Не удалось определить местоположение. Попробуйте подойти к окну, если вы в помещении. Если доступно, вы можете включить сервис геолокации \"Определение местоположения\" в настройках местоположения, чтобы определять местоположение быстрее</string>
-    <string name="city_search_query_language">ru</string>
+    <string name="language">ru</string>
 </resources>
