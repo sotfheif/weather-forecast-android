@@ -2,7 +2,6 @@ package com.github.sotfheif.weatherforecast
 
 import android.Manifest
 import android.os.Build
-import android.util.Log
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
@@ -23,7 +22,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 
-//make long tests to bypass firebase test execution count restriction
 @RunWith(AndroidJUnit4::class)
 class BasicFuncTest {
     @get:Rule
@@ -69,7 +67,7 @@ class BasicFuncTest {
             matches(
                 Utils.atPosition(
                     0,
-                    hasDescendant(withSubstring("—"))
+                    hasDescendant(withSubstring("to"))
                 )
             )
         )
@@ -87,7 +85,7 @@ class BasicFuncTest {
             matches(
                 Utils.atPosition(
                     6,
-                    hasDescendant(withSubstring("—"))
+                    hasDescendant(withSubstring("to"))
                 )
             )
         )
@@ -131,7 +129,7 @@ class BasicFuncTest {
             matches(
                 Utils.atPosition(
                     0,
-                    hasDescendant(withSubstring("—"))
+                    hasDescendant(withSubstring("to"))
                 )
             )
         )
@@ -149,7 +147,7 @@ class BasicFuncTest {
             matches(
                 Utils.atPosition(
                     6,
-                    hasDescendant(withSubstring("—"))
+                    hasDescendant(withSubstring("to"))
                 )
             )
         )
