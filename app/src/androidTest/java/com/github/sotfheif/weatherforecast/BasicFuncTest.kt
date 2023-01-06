@@ -2,6 +2,7 @@ package com.github.sotfheif.weatherforecast
 
 import android.Manifest
 import android.os.Build
+import android.util.Log
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
@@ -68,7 +69,7 @@ class BasicFuncTest {
             matches(
                 Utils.atPosition(
                     0,
-                    hasDescendant(withSubstring("to"))
+                    hasDescendant(withSubstring("—"))
                 )
             )
         )
@@ -86,7 +87,7 @@ class BasicFuncTest {
             matches(
                 Utils.atPosition(
                     6,
-                    hasDescendant(withSubstring("to"))
+                    hasDescendant(withSubstring("—"))
                 )
             )
         )
@@ -130,7 +131,7 @@ class BasicFuncTest {
             matches(
                 Utils.atPosition(
                     0,
-                    hasDescendant(withSubstring("to"))
+                    hasDescendant(withSubstring("—"))
                 )
             )
         )
@@ -148,7 +149,7 @@ class BasicFuncTest {
             matches(
                 Utils.atPosition(
                     6,
-                    hasDescendant(withSubstring("to"))
+                    hasDescendant(withSubstring("—"))
                 )
             )
         )
