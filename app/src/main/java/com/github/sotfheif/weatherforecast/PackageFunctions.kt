@@ -57,7 +57,7 @@ fun ForecastResponse.toDayForecastList():
                     .toStringBiggerMinus(),
                 temperature2mMax = daily.temperature_2m_max[it]
                     .toStringBiggerMinus(),
-                windspeed10mMax = daily.windspeed_10m_max[it].toString(),
+                windspeed10mMax = daily.windspeed_10m_max[it].roundToInt().toString(),
                 winddirection10mDominant = daily
                     .winddirection_10m_dominant[it].toString(),
                 timeStamp = Calendar.getInstance().timeInMillis
