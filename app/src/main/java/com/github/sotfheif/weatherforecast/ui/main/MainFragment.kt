@@ -34,6 +34,8 @@ import java.util.*
 //private const val TAG = "MainFragment" //DEBUG FEATURE
 class MainFragment : Fragment() {
     //TODO BEFORE RELEASE: remove/replace unexpectedmistake dialog and all code commented as debug feature, replace connection timeout with connection error.
+    //TODO after "show weather" pressed show weather NOW, not today. or rename button to "weather today"
+    //TODO fix app bar text having different size in day/night theme
     //TODO BUG open weekforecastfragment, change locale, return to the app(weekforecastfragment). weathercode remains the same)
     //TODO make "enter" press selectcitybutton
     //TODO make possible typing location name in other language.
