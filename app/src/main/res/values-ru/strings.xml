@@ -80,4 +80,5 @@
     <string name="failed_to_detect_geo_dialog_text_lt_api30">Не удалось определить местоположение. Попробуйте подойти к окну, если вы в помещении</string>
     <string name="failed_to_detect_geo_dialog_text_ge_api30">Не удалось определить местоположение. Попробуйте подойти к окну, если вы в помещении. Если доступно, вы можете включить сервис геолокации \"Определение местоположения\" в настройках местоположения, чтобы определять местоположение быстрее</string>
     <string name="language">ru</string>
+    <string name="current_weather">"%1$s, %2$s, ветер %3$s %4$s "</string>
 </resources>

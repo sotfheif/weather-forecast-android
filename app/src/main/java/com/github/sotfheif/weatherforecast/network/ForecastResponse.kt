@@ -4,6 +4,7 @@ data class ForecastResponse(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val generationtime_ms: Double? = null,
+    val current_weather: CurrentWeather? = null,
     val utc_offset_seconds: Long? = null,
     val timezone: String? = null,
     val timezone_abbreviation: String? = null,

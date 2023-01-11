@@ -40,14 +40,16 @@ private val retrofitCity = Retrofit.Builder()
 
 interface OpenMeteoApiService {
     @GET("v1/forecast")
-    suspend fun getForecastResponse(@Query("latitude") latitude:Double,
-                                    @Query("longitude") longitude: Double,
-                                    @Query("timezone") timezone: String ="auto",
-                                    @Query("start_date") start_date: String,
-                                    @Query("end_date") end_date: String,
-                                    @Query(value = "hourly", encoded = true) hourly: String,
-                                    @Query(value = "daily", encoded = true) daily: String
-    ) : ForecastResponse
+    suspend fun getForecastResponse(
+        @Query("latitude") latitude: Double,
+        @Query("longitude") longitude: Double,
+        @Query("current_weather") current_weather: String = "true",
+        @Query("timezone") timezone: String = "auto",
+        @Query("start_date") start_date: String,
+        @Query("end_date") end_date: String,
+        @Query(value = "hourly", encoded = true) hourly: String,
+        @Query(value = "daily", encoded = true) daily: String
+    ): ForecastResponse
 
     @GET("v1/search")
     suspend fun getCityResponse(@Query("name") name: String,
