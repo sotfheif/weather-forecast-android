@@ -5,7 +5,7 @@ import timber.log.Timber
 import timber.log.Timber.DebugTree
 
 
-class MyApp : Application() {
+class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
