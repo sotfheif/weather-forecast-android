@@ -21,11 +21,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.github.sotfheif.weatherforecast.R
-import com.github.sotfheif.weatherforecast.data.DayForecast
 import com.github.sotfheif.weatherforecast.databinding.FragmentMainBinding
 import com.github.sotfheif.weatherforecast.network.CurrentWeather
 import com.github.sotfheif.weatherforecast.prepForUi
-import com.github.sotfheif.weatherforecast.pressureToLocUnit
 import com.github.sotfheif.weatherforecast.toStringBiggerMinus
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -216,12 +214,8 @@ class MainFragment : Fragment() {
             }
         }
         viewModel.weekForecast.observe(this.viewLifecycleOwner) {
-            if (viewModel.weekForecast.value.isNullOrEmpty()) {
-                binding.weekForecastButton.isEnabled = false
-            } else {
-                //binding.todayForecastTextView.text = prepDayForecastUiText(it[0])
-                binding.weekForecastButton.isEnabled = true
-            }
+            binding.weekForecastButton.isEnabled = !viewModel.weekForecast.value.isNullOrEmpty()
+            //binding.todayForecastTextView.text = prepDayForecastUiText(it[0])
         }
 
         viewModel.weatherCodeMap = mapOf(
@@ -673,18 +667,19 @@ class MainFragment : Fragment() {
                 R.string.current_weather,
                 currentWeather.temperature.toStringBiggerMinus().plus(
                     getString(R.string.temperature_unit)
-                ) ?: "",
+                ),
                 viewModel.weatherCodeMap[currentWeather.weathercode] ?: "",
                 currentWeather.windspeed.toString().plus(
                     getString(R.string.wind_speed_unit)
-                ) ?: "",
+                ),
                 currentWeather.winddirection.toString().plus(
                     getString(R.string.wind_direction_unit)
-                ) ?: ""
+                )
             )
         }
     }
 
+    /* not needed for now
     fun prepDayForecastUiText(dayForecast: DayForecast): String {
         return if (viewModel.weekForecast.value.isNullOrEmpty()) {
             ""
@@ -711,6 +706,7 @@ class MainFragment : Fragment() {
             )
         }
     }
+    */
 
     fun isNetworkAvailable(context: Context?): Boolean { //returns true if connected to wifi without internet
         if (context == null) return false
