@@ -190,6 +190,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _weekForecast.value = listOf()
     }
 
+    fun resetCurrentWeather() {
+        _currentWeather.value = null
+    }
+
+    fun resetDisplayableWeatherData() {
+        resetWeekForecast()
+        resetCurrentWeather()
+    }
+
     fun resetForecastResult() {
         _getForecastResult = ForecastResponse()
     }

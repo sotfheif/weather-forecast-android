@@ -135,7 +135,8 @@ class MainFragment : Fragment() {
             if (viewModel.selectedCity == viewModel.emptyCity) {
                 return@setOnClickListener
             }
-            viewModel.resetWeekForecast()
+            viewModel.resetDisplayableWeatherData()
+
             binding.weekForecastButton.isEnabled =
                 (viewModel.weekForecast.value?.isNotEmpty() == true)
             binding.todayForecastTextView.text = ""

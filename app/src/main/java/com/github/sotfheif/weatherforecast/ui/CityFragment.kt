@@ -33,7 +33,7 @@ class CityFragment :
         viewModel.setNormalAppUiState()
         val myCityListAdapter = MyCityListAdapter {
             viewModel.setSelectedCity(it)
-            viewModel.resetWeekForecast()
+            viewModel.resetDisplayableWeatherData()
             val action = CityFragmentDirections.actionCityFragmentToMainFragment()
             view.findNavController().navigate(action)//TODO later mb prevent doubleclick?
         }
