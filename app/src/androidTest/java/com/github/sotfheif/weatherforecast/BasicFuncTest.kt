@@ -33,7 +33,7 @@ class BasicFuncTest {
 
 
     @Test
-    fun showCurLocTodayForecast() {
+    fun showCurLocCurWeather() {
         //turn on location services
         if (Build.VERSION.SDK_INT >= 29)
             InstrumentationRegistry.getInstrumentation().uiAutomation

@@ -21,10 +21,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.github.sotfheif.weatherforecast.R
-import com.github.sotfheif.weatherforecast.data.DayForecast
 import com.github.sotfheif.weatherforecast.databinding.FragmentMainBinding
+import com.github.sotfheif.weatherforecast.network.CurrentWeather
 import com.github.sotfheif.weatherforecast.prepForUi
-import com.github.sotfheif.weatherforecast.pressureToLocUnit
+import com.github.sotfheif.weatherforecast.toStringBiggerMinus
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import timber.log.Timber
@@ -34,7 +34,8 @@ import java.util.*
 //private const val TAG = "MainFragment" //DEBUG FEATURE
 class MainFragment : Fragment() {
     //TODO BEFORE RELEASE: remove/replace unexpectedmistake dialog and all code commented as debug feature, replace connection timeout with connection error.
-    //TODO after "show weather" pressed show weather NOW, not today. or rename button to "weather today"
+    //TODO review added code fetching and displaying current weather.
+    //TODO mb remove/move creating empty objects like Hourly(), or Daily() in order to optimize code
     //TODO fix app bar text having different size in day/night theme
     //TODO BUG open weekforecastfragment, change locale, return to the app(weekforecastfragment). weathercode remains the same)
     //TODO make "enter" press selectcitybutton
@@ -134,7 +135,8 @@ class MainFragment : Fragment() {
             if (viewModel.selectedCity == viewModel.emptyCity) {
                 return@setOnClickListener
             }
-            viewModel.resetWeekForecast()
+            viewModel.resetDisplayableWeatherData()
+
             binding.weekForecastButton.isEnabled =
                 (viewModel.weekForecast.value?.isNotEmpty() == true)
             binding.todayForecastTextView.text = ""
@@ -207,13 +209,14 @@ class MainFragment : Fragment() {
             }
         }
 
-        viewModel.weekForecast.observe(this.viewLifecycleOwner) {
-            if (viewModel.weekForecast.value.isNullOrEmpty()) {
-                binding.weekForecastButton.isEnabled = false
-            } else {
-                binding.todayForecastTextView.text = prepDayForecastUiText(it[0])
-                binding.weekForecastButton.isEnabled = true
+        viewModel.currentWeather.observe(this.viewLifecycleOwner) {
+            viewModel.currentWeather.value?.let {
+                binding.todayForecastTextView.text = prepWeatherNowUiText(it)
             }
+        }
+        viewModel.weekForecast.observe(this.viewLifecycleOwner) {
+            binding.weekForecastButton.isEnabled = !viewModel.weekForecast.value.isNullOrEmpty()
+            //binding.todayForecastTextView.text = prepDayForecastUiText(it[0])
         }
 
         viewModel.weatherCodeMap = mapOf(
@@ -657,6 +660,27 @@ class MainFragment : Fragment() {
     }
     */
 
+    fun prepWeatherNowUiText(currentWeather: CurrentWeather): String {
+        return if (viewModel.currentWeather.value == null) {
+            ""
+        } else {
+            getString(
+                R.string.current_weather,
+                currentWeather.temperature.toStringBiggerMinus().plus(
+                    getString(R.string.temperature_unit)
+                ),
+                viewModel.weatherCodeMap[currentWeather.weathercode] ?: "",
+                currentWeather.windspeed.toString().plus(
+                    getString(R.string.wind_speed_unit)
+                ),
+                currentWeather.winddirection.toString().plus(
+                    getString(R.string.wind_direction_unit)
+                )
+            )
+        }
+    }
+
+    /* not needed for now
     fun prepDayForecastUiText(dayForecast: DayForecast): String {
         return if (viewModel.weekForecast.value.isNullOrEmpty()) {
             ""
@@ -683,6 +707,7 @@ class MainFragment : Fragment() {
             )
         }
     }
+    */
 
     fun isNetworkAvailable(context: Context?): Boolean { //returns true if connected to wifi without internet
         if (context == null) return false

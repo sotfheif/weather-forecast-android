@@ -48,6 +48,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         MutableLiveData<List<DayForecast>>(listOf())//mb should create another livedata just for ui forecast
     val weekForecast: LiveData<List<DayForecast>>
         get() = _weekForecast
+    private var _currentWeather = MutableLiveData<CurrentWeather?>(null)
+    val currentWeather: LiveData<CurrentWeather?>
+        get() = _currentWeather
     private var _citySearchResult = listOf<City>()
     val citySearchResult: List<City> get() = _citySearchResult
 
@@ -187,6 +190,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _weekForecast.value = listOf()
     }
 
+    fun resetCurrentWeather() {
+        _currentWeather.value = null
+    }
+
+    fun resetDisplayableWeatherData() {
+        resetWeekForecast()
+        resetCurrentWeather()
+    }
+
     fun resetForecastResult() {
         _getForecastResult = ForecastResponse()
     }
@@ -214,6 +226,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun setForecast(forecastResult: ForecastResponse) {
         Timber.d("entered setForecast, forecastResult=$forecastResult")
         val weekForecast = forecastResult.toDayForecastList()
+        _currentWeather.value = forecastResult.current_weather
         if (weekForecast[0].latitude != null) { //TODO mb replace this check with something more elegant
             Timber.d("weekForecast[0].latitude != null")
             setWeekForecast(weekForecast)
