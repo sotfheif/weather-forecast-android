@@ -65,6 +65,7 @@
         android:layout_marginStart="4dp" />
 
     <TextView
+        android:gravity="center"
         android:id="@+id/selectedCityTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -90,6 +91,7 @@
         android:layout_marginStart="4dp" />
 
     <TextView
+        android:gravity="center"
         android:id="@+id/todayForecastTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
