@@ -89,20 +89,27 @@
         android:layout_marginStart="4dp"
         android:layout_marginEnd="4dp" />
 
-    <TextView
-        android:id="@+id/todayForecastTextView"
+
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:textSize="18sp"
-        android:gravity="center"
         app:layout_constraintBottom_toTopOf="@id/weekForecastButton"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/showForecastButton"
-        tools:text="Weather today"
-        android:textColor="?android:textColorPrimary" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/showForecastButton">
+
+        <TextView
+            android:id="@+id/todayForecastTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="?android:textColorPrimary"
+            android:textSize="18sp"
+            tools:text="Weather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdhWeather todayWeataasdasdh" />
+    </ScrollView>
 
     <ImageView
         android:id="@+id/status_image_forecast"
@@ -111,10 +118,10 @@
         android:contentDescription="@string/status_image_forecast_main_fragm_content_desc"
         android:src="@drawable/loading_animation"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/todayForecastTextView"
-        app:layout_constraintEnd_toEndOf="@id/todayForecastTextView"
-        app:layout_constraintStart_toStartOf="@id/todayForecastTextView"
-        app:layout_constraintTop_toTopOf="@id/todayForecastTextView"
+        app:layout_constraintBottom_toBottomOf="@id/scrollView"
+        app:layout_constraintEnd_toEndOf="@id/scrollView"
+        app:layout_constraintStart_toStartOf="@id/scrollView"
+        app:layout_constraintTop_toTopOf="@id/scrollView"
         tools:visibility="visible" />
 
     <Button
