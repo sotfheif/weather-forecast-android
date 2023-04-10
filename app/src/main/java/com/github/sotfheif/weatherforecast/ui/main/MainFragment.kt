@@ -34,6 +34,7 @@ import java.util.*
 //private const val TAG = "MainFragment" //DEBUG FEATURE
 class MainFragment : Fragment() {
     //TODO BEFORE RELEASE: remove/replace unexpectedmistake dialog and all code commented as debug feature, replace connection timeout with connection error.
+    //TODO BUG open weekfragment, lock screen, after some time unlock. expected: week forecast. result: empty weekforecast screen
     //TODO review added code fetching and displaying current weather.
     //TODO mb remove/move creating empty objects like Hourly(), or Daily() in order to optimize code
     //TODO fix app bar text having different size in day/night theme
