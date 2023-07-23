@@ -80,4 +80,10 @@
     <string name="location_permission_rationale_pos_button">Grant</string>
     <string name="unexpected_mistake_dialog_neg_button">Close</string>
     <string name="language">en</string>
+    <string-array name="string_array_name1">
+        <item>text_string1</item>
+    </string-array>
+    <string-array name="string_array_name2">
+        <item>text_string2</item>
+    </string-array>
 </resources>
