@@ -10,15 +10,21 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import com.github.sotfheif.weatherforecast.R
 import com.github.sotfheif.weatherforecast.databinding.FragmentMainBinding
@@ -34,10 +40,11 @@ import java.util.*
 //private const val TAG = "MainFragment" //DEBUG FEATURE
 class MainFragment : Fragment() {
     //TODO BEFORE RELEASE: remove/replace unexpectedmistake dialog and all code commented as debug feature, replace connection timeout with connection error.
+    //TODO maybe remove side blank/space characters before searching manually entered location
     //TODO BUG open weekfragment, lock screen, after some time unlock. expected: week forecast. result: empty weekforecast screen
     //TODO review added code fetching and displaying current weather.
     //TODO mb remove/move creating empty objects like Hourly(), or Daily() in order to optimize code
-    //TODO fix app bar text having different size in day/night theme
+    //TODO fix app bar text having different size in day/night theme - done?
     //TODO BUG open weekforecastfragment, change locale, return to the app(weekforecastfragment). weathercode remains the same)
     //TODO make "enter" press selectcitybutton
     //TODO make possible typing location name in other language.
@@ -50,7 +57,7 @@ class MainFragment : Fragment() {
     //TODO BUG when clicked showforecast fast successively, spinner may continue being visible after no_internet dialog, and then (long after the dialog closed) dissappear without  anything shown
     //TODO check setSpinnerVisibility() placement (in code).
     //TODO mb make showForecasButtonWork, selectCityButtonWork volatile or use existing loading spinner livedata instead
-    //TODO later prompt to turn on android location (gps) inside app
+    //TODO later prompt to turn on android location (gps) inside app (needs google services)
     //TODO later use fusedlocationprovider from google on devices where available
     //TODO later add possibility to save location (maybe just latest detected current location will do), so that you can later use that saved location
     //TODO later review architecture
@@ -292,6 +299,40 @@ class MainFragment : Fragment() {
                 (viewModel.weekForecast.value?.isNotEmpty() == true)
         }*/
 
+        // The usage of an interface lets you inject your own implementation
+        val menuHost: MenuHost = requireActivity()
+
+        // Add menu items without using the Fragment Menu APIs
+        // Note how we can tie the MenuProvider to the viewLifecycleOwner
+        // and an optional Lifecycle.State (here, RESUMED) to indicate when
+        // the menu should be visible
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                // Add menu items here
+                menuInflater.inflate(R.menu.main_menu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                // Handle the menu selection
+                return when (menuItem.itemId) {
+                    R.id.main_menu_settings -> {
+                        // clearCompletedTasks()
+                        this@MainFragment
+                            .findNavController().navigate(
+                                MainFragmentDirections.actionMainFragmentToSettingsFragment()
+                            )
+                        true
+                    }
+
+                    R.id.main_menu_overflow_settings -> {
+                        // loadTasks(true)
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
     }
 
@@ -343,6 +384,27 @@ class MainFragment : Fragment() {
             else getString(R.string.selected_location_text_prefix, it.prepForUi())
         }
     }
+    /* Deprecated
+        override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+            R.id.main_menu_settings -> {
+                // User chose the "Settings" item, show the app settings UI...
+                navController.navigate(MainFragmentDirections.actionMainFragmentToSettingsFragment())
+                true
+            }
+
+            R.id.main_menu_overflow_settings -> {
+                // User chose the "Favorite" action, mark the current item
+                // as a favorite...
+                true
+            }
+
+            else -> {
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                super.onOptionsItemSelected(item)
+            }
+        }
+     */
 
 
     private fun showNoGeoDialog() {
