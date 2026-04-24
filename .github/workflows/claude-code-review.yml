@@ -43,3 +43,11 @@ jobs:
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
+      # ADD THIS NEW STEP RIGHT HERE
+      - name: Upload Claude Execution Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-logs
+          path: /home/runner/work/_temp/claude-execution-output.json
+          retention-days: 7 # Optional: automatically delete after a week to save storage
