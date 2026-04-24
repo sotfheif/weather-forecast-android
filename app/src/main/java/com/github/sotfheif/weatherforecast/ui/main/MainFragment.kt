@@ -259,7 +259,7 @@ class MainFragment : Fragment() {
                 binding.selectCityButton.isEnabled = false
                 binding.currentLocationButton.isEnabled = false
             } else {
-                binding.statusImageForecast.visibility = View.GONE
+                binding.statusImageForecast.visibility = View.VISIBLE
                 binding.selectCityButton.isEnabled = true
                 binding.currentLocationButton.isEnabled = true
             }
