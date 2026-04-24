@@ -37,7 +37,7 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Explicitly restricts Claude to only these commands and sub-commands
-          claude_args: '--allowed-tools "Bash(gh pr list, gh pr view *, gh pr comment *, cat *)"'
+          claude_args: '--allowed-tools "Bash(gh pr list *)" "Bash(gh pr view *)" "Bash(gh pr comment *)"'
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: 'Review this pull request. Analyze the diff for logic errors, security vulnerabilities, and clean code adherence. Post your review as a comment on this pull request.'
