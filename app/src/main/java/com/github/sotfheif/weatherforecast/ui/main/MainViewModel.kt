@@ -110,7 +110,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setLocation(location: Location) {
-        _currentLocation = location
         latitude = _currentLocation.latitude
         longitude = _currentLocation.longitude
     }
@@ -164,9 +163,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: Exception) {
                 Timber.d("getForecastByCoords, $e")
                 exception = e.toString()
-            } finally {
-                Timber.d("after retrofitForecastServicegetforecastresp")
-                setForecastSpinnerVisibilityMainFragment(false)
             }
         }.join()
         Timber.d("after getforecastresponse")
