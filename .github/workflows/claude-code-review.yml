@@ -36,8 +36,9 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          show_full_output: true
           # Explicitly restricts Claude to only these commands and sub-commands
-          claude_args: '--allowed-tools "Bash(gh pr list *)" "Bash(gh pr view *)" "Bash(gh pr comment *)" "Bash(gh pr diff *)" "Bash(gh pr review *)"'
+          claude_args: '--allowed-tools "Bash(gh pr list *)" "Bash(gh pr view *)" "Bash(gh pr comment *)" "Bash(gh pr diff *)" "Bash(gh pr review *)" "Bash(git log)" "Write"'
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt:  |
@@ -52,8 +53,17 @@ jobs:
 
             Note: The PR branch is already checked out in the current working directory.
 
-            Use `gh pr comment` to post comment.
+            
             Only post GitHub comments - don't submit review text as messages.
+            
+            IMPORTANT: Use `gh pr diff` to obtain the PR diff. Do NOT create
+            "test" or probe comments to discover the diff. Never post inline
+            comments with placeholder content like "test" or "Test".
+            IMPORTANT: Do NOT use curl, python, or other HTTP tools to call the GitHub API directly.
+            IMPORTANT:
+            Do not pass your review as an inline string to the --body flag. 
+            1. Write your complete, formatted review to a file named `pr_review.md`.
+            2. Post the comment using this exact command: gh pr comment ${{ github.event.pull_request.number || github.event.issue.number }} --body-file pr_review.md
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
 
