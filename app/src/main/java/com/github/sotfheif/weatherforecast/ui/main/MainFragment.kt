@@ -219,6 +219,9 @@ class MainFragment : Fragment() {
             //binding.todayForecastTextView.text = prepDayForecastUiText(it[0])
         }
 
+        viewModel.weekForecast.observe(this.viewLifecycleOwner) {
+            println("isWeekForecastNullOrEmpty=${viewModel.weekForecast.value.isNullOrEmpty()}")
+        }
         viewModel.weatherCodeMap = mapOf(
             0 to getString(R.string.wc0),
             1 to getString(R.string.wc1),
